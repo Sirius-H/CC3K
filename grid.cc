@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include "grid.h"
+#include "cell.h"
 
 Grid::Grid(std::string fileName) {
     std::ifstream ifs;
@@ -9,8 +10,36 @@ Grid::Grid(std::string fileName) {
     std::string s;
     while (std::getline(ifs, s)) {
         std::cout << s << std::endl;
+
+
+
+
+
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Grid::~Grid() {
     for (auto item : theGrid) {
