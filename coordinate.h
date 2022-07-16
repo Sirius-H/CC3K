@@ -6,5 +6,8 @@ struct Coordinate {
     int y;
 };
 
+std::ostream& operator<<(std::ostream& out, Coordinate& cdn);
+
+bool operator<(const Coordinate cdn1, const Coordinate cdn2);
 
 #endif

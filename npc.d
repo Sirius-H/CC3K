@@ -1,0 +1,1 @@
+npc.o: npc.cc
