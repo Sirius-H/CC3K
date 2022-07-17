@@ -33,9 +33,12 @@ Grid::Grid(std::string fileName) {
                 Coordinate currCdn{lineNum, i};
                 allFloors.emplace(currCdn, 0);
 
-            } else if (s[i] == '#') {
+            } else if (s[i] == '#' || s[i] == '+') {
                 ptr1 = new Passage{currCdn};
                 ptr2 = new Passage{currCdn};
+            } else {
+                // Debugger
+                std::cout << "this line should not be printed" << std::endl;
             }
             tempRow1.emplace_back(ptr1);
             tempRow2.emplace_back(ptr2);
@@ -71,9 +74,11 @@ Grid::Grid(std::string fileName) {
 
 Grid::~Grid() {
     int height = theGrid.size();
+    // Debugger
     std::cout << height << std::endl;
     for (int i = 0; i < height; i++) {
         int width = theGrid[i].size();
+        // Debugger
         std::cout << width << std::endl;
         for (int j; j < width; j++) {
             delete theGrid[i][j];
