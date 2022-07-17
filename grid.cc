@@ -11,6 +11,7 @@
 #include "wall.h"
 #include "floor.h"
 #include "passage.h"
+#include "stair.h"
 #include "textdisplay.h"
 #include "pc.h"
 #include "human.h"
@@ -89,29 +90,47 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
     // Step 2: Spawn PC
     std::default_random_engine rng{seed};
     std::shuffle(floors.begin(), floors.end(), rng);
+    std::pair<Coordinate, char> newState{floors.at(0), '@'};
+    setState(newState);
+    td->notify(*this);
     // Debugger
+    //std::cout << *td;
     //print(floors);
+    int x1 = floors.at(0).x;
+    int y1 = floors.at(0).y;
+    delete theGrid.at(x1).at(y1);
 
     if (PCName == 'h') {
+        theGrid[x1][y1] = new Human{floors[0]};
         // Debugger
-        //std::cout<< floors.at(0) << std::endl;
-
-        int x = floors.at(0).x;
-        int y = floors.at(0).y;
-        delete theGrid.at(x).at(y);
-        theGrid[x][y] = new Human{floors.at(0)};
-        std::pair<Coordinate, char> newState{floors.at(0), '@'};
-        setState(newState);
-        td->notify(*this);
-
-        // Debugger
-        std::cout << *td;
         std::cout << "Human PC created successfully" << std::endl;
+
+    } else if (PCName == 'd') {
+        theGrid[x1][y1] = new Dwarf{floors[0]};
+        // Debugger
+        std::cout << "Dwarf PC created successfully" << std::endl;
+    } else if (PCName == 'e') {
+        theGrid[x1][y1] = new Elf{floors[0]};
+        // Debugger
+        std::cout << "Elf PC created successfully" << std::endl;
+    } else if (PCName == 'o') {
+        theGrid[x1][y1] = new Orc{floors[0]};
+        // Debugger
+        std::cout << "Orc PC created successfully" << std::endl;
     }
+    PCLocation = floors[0];
 
 
 
+    // Step 3: Randomly generate Stair
+    int x2 = floors.at(1).x;
+    int y2 = floors.at(1).y;
+    delete theGrid.at(x2).at(y2);
+    theGrid[x2][y2] = new Stair{floors[1]};
 
+
+
+    // Step 4: NPC random generations
 
 
 

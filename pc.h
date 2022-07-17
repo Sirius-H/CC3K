@@ -11,7 +11,7 @@ protected:
     int Def;
     bool withCompass = false;
     bool withBarrierSuit = false;
-    int coin = 0;
+    double coin = 0;
     int potionAtkEffect = 0;
     int pottionDefEffect = 0;
     int moved = 0;
