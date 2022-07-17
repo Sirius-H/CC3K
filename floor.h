@@ -6,7 +6,7 @@ class Floor: public MapElement {
 public:
     Floor(Coordinate cdn);
     bool canStep() override;
-    std::string getName() override;
+    std::string getName() const override;
 };
 
 

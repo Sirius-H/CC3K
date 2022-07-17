@@ -3,6 +3,6 @@ Passage::Passage(Coordinate cdn, int passageType): MapElement{cdn}, passageType{
 
 bool Passage::canStep() { return true; }
 
-std::string Passage::getName() { return "Passage"; }
+std::string Passage::getName() const { return "Passage"; }
 
 int Passage::state() { return passageType; }

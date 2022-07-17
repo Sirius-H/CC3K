@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
+#include <random>
+#include <chrono>
 #include <map>
 #include "grid.h"
 #include "cell.h"
@@ -9,12 +12,27 @@
 #include "floor.h"
 #include "passage.h"
 #include "textdisplay.h"
+#include "pc.h"
+#include "human.h"
+#include "dwarf.h"
+#include "elf.h"
+#include "orc.h"
 
-Grid::Grid(std::string fileName) {
+// Debugger
+void print( std::vector<Coordinate> const & v ) {
+	for ( Coordinate i : v ) std::cout << i << std::endl;
+}
+
+
+
+
+Grid::Grid(std::string fileName, char PCName, unsigned seed) {
+    // Step 1: create an empty grid of cells, create and connect with TextDisplay
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);
     std::string s;
     int lineNum = 0;
+    std::vector<Coordinate> floors;
     while (std::getline(ifs, s)) { // 目前只实现了floor.txt中仅包含单张地图
         // Debugger
         //std::cout << s << std::endl;
@@ -39,6 +57,7 @@ Grid::Grid(std::string fileName) {
                 ptr2 = new Floor{currCdn};
                 Coordinate currCdn{lineNum, i};
                 allFloors.emplace(currCdn, 0);
+                floors.emplace_back(currCdn);
 
             } else if (s[i] == '#') {
                 ptr1 = new Passage{currCdn, 1};
@@ -59,7 +78,44 @@ Grid::Grid(std::string fileName) {
     }
     td = new TextDisplay{theGrid};
     // Debugger
-    std::cout << *td;
+    //std::pair<Coordinate, char> updatedInfo = {Coordinate{1,2}, '@'};
+    //setState(updatedInfo);
+    //td->notify(*this);
+
+    // Debugger
+    //std::cout << *td;
+
+
+    // Step 2: Spawn PC
+    std::default_random_engine rng{seed};
+    std::shuffle(floors.begin(), floors.end(), rng);
+    // Debugger
+    //print(floors);
+
+    if (PCName == 'h') {
+        // Debugger
+        //std::cout<< floors.at(0) << std::endl;
+
+        int x = floors.at(0).x;
+        int y = floors.at(0).y;
+        delete theGrid.at(x).at(y);
+        theGrid[x][y] = new Human{floors.at(0)};
+        std::pair<Coordinate, char> newState{floors.at(0), '@'};
+        setState(newState);
+        td->notify(*this);
+
+        // Debugger
+        std::cout << *td;
+        std::cout << "Human PC created successfully" << std::endl;
+    }
+
+
+
+
+
+
+
+
 }
 
 

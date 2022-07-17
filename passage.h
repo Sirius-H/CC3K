@@ -7,7 +7,7 @@ class Passage: public MapElement {
 public:
     Passage(Coordinate cdn, int passageType);
     bool canStep() override;
-    std::string getName() override;
+    std::string getName() const override;
     int state() override;
 };
 

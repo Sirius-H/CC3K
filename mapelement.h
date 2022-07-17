@@ -7,7 +7,7 @@
 class MapElement: public Cell {
 public:
     MapElement(Coordinate cdn);
-    std::string getType() override;
+    std::string getType() const override;
     int state() override;
 };
 

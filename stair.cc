@@ -15,5 +15,5 @@ void Stair::notify(Subject& whoNotified) {
     revealed = true;
 }
 
-std::string Stair::getName() { return "Stair"; }
+std::string Stair::getName() const { return "Stair"; }
 

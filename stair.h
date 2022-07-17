@@ -9,7 +9,7 @@ public:
     Stair(Coordinate cdn, bool revealed = false);
     int state() override;
     void notify(Subject& whoNotified) override;
-    std::string getName() override;
+    std::string getName() const override;
 };
 
 

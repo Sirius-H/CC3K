@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <chrono>
 #include "coordinate.h"
 #include "subject.h"
 
@@ -17,7 +18,7 @@ class Grid: public Subject {
     Coordinate PCLocation;
     TextDisplay* td;
 public:
-    Grid(std::string fileName);
+    Grid(std::string fileName, char PCName = 'h', unsigned seed = std::chrono::system_clock::now().time_since_epoch().count());
     void init(char c);
     void updatePlayer();
     void updateGrid();

@@ -2,7 +2,7 @@
 
 MapElement::MapElement(Coordinate cdn): Cell{cdn} { }
 
-std::string MapElement::getType() {
+std::string MapElement::getType() const {
     return "MapElement";
 }
 

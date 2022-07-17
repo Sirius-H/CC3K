@@ -2,7 +2,7 @@
 #include "coordinate.h"
 
 std::ostream& operator<<(std::ostream& out, Coordinate& cdn) {
-    out << "(" << cdn.x << "," << cdn.y;
+    out << "(" << cdn.x << "," << cdn.y << ")";
     return out;
 }
 
