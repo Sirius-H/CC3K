@@ -17,26 +17,32 @@ Grid::Grid(std::string fileName) {
     int lineNum = 0;
     while (std::getline(ifs, s)) { // 目前只实现了floor.txt中仅包含单张地图
         std::cout << s << std::endl;
-        std::vector<Cell*> tempRow;
+        std::vector<Cell*> tempRow1;
+        std::vector<Cell*> tempRow2;
         int len = s.length();
         for (int i = 0; i < len; i++) {
             Coordinate currCdn{lineNum, i};
-            Cell* ptr;
+            Cell* ptr1;
+            Cell* ptr2;
             if (s[i] == '|' || s[i] == '-' || s[i] == ' ') {
-                ptr = new Wall{currCdn};
+                ptr1 = new Wall{currCdn};
+                ptr2 = new Wall{currCdn};
             } else if (s[i] == '.') {
-                ptr = new Floor{currCdn};
+                ptr1 = new Floor{currCdn};
+                ptr2 = new Floor{currCdn};
                 Coordinate currCdn{lineNum, i};
                 allFloors.emplace(currCdn, 0);
 
             } else if (s[i] == '#') {
-                ptr = new Passage{currCdn};
+                ptr1 = new Passage{currCdn};
+                ptr2 = new Passage{currCdn};
             }
-            tempRow.emplace_back(ptr);
+            tempRow1.emplace_back(ptr1);
+            tempRow2.emplace_back(ptr2);
         }
         lineNum++;
-        theGrid.emplace_back(tempRow);
-        backupGrid.emplace_back(tempRow);
+        theGrid.emplace_back(tempRow1);
+        backupGrid.emplace_back(tempRow2);
     }
 }
 
@@ -64,19 +70,24 @@ Grid::Grid(std::string fileName) {
 
 
 Grid::~Grid() {
-    for (auto item : theGrid) {
-        for (auto cellptr : item) {
-            delete cellptr;
+    int height = theGrid.size();
+    for (int i = 0; i < height; i++) {
+        int width = theGrid[i].size();
+        for (int j; j < width; j++) {
+            delete theGrid[i][j];
         }
-        item.clear();
+        theGrid[i].clear();
     }
     theGrid.clear();
 
-    for (auto item : backupGrid) {
-        for (auto cellptr : item) {
-            delete cellptr;
+    height = backupGrid.size();
+    for (int i = 0; i < height; i++) {
+        std::cout << "So far so good" << std::endl;
+        int width = backupGrid[i].size();
+        for (int j; j < width; j++) {
+            delete backupGrid[i][j];
         }
-        item.clear();
+        backupGrid[i].clear();
     }
     backupGrid.clear();
 }
