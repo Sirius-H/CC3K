@@ -71,8 +71,10 @@ Grid::Grid(std::string fileName) {
 
 Grid::~Grid() {
     int height = theGrid.size();
+    std::cout << height << std::endl;
     for (int i = 0; i < height; i++) {
         int width = theGrid[i].size();
+        std::cout << width << std::endl;
         for (int j; j < width; j++) {
             delete theGrid[i][j];
         }
@@ -82,7 +84,6 @@ Grid::~Grid() {
 
     height = backupGrid.size();
     for (int i = 0; i < height; i++) {
-        std::cout << "So far so good" << std::endl;
         int width = backupGrid[i].size();
         for (int j; j < width; j++) {
             delete backupGrid[i][j];
