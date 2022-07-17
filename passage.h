@@ -3,10 +3,12 @@
 #include "mapelement.h"
 
 class Passage: public MapElement {
+    int passageType; // '#' -> type 1; '+' -> type 2
 public:
-    Passage(Coordinate cdn);
+    Passage(Coordinate cdn, int passageType);
     bool canStep() override;
     std::string getName() override;
+    int state() override;
 };
 
 #endif

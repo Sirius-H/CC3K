@@ -1,8 +1,10 @@
 #include "wall.h"
 
-Wall::Wall(Coordinate cdn): MapElement{cdn} { }
+Wall::Wall(Coordinate cdn, int wallType): MapElement{cdn}, wallType{wallType} { }
 
 std::string Wall::getName() {
     return "Wall";
 }
+
+int Wall::state() { return wallType; }
 

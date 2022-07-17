@@ -3,9 +3,11 @@
 #include "mapelement.h"
 
 class Wall: public MapElement {
+    int wallType; // '|' -> type 1;  '-' -> type 2; ' ' -> type 3
 public:
-    Wall(Coordinate cdn);
+    Wall(Coordinate cdn, int wallType);
     std::string getName() override;
+    int state() override;
 };
 
 

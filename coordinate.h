@@ -1,5 +1,6 @@
 #ifndef __COORDINATE_H__
 #define __COORDINATE_H__
+#include <iostream>
 
 struct Coordinate {
     int x;
