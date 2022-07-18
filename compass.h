@@ -4,10 +4,10 @@
 #include "subject.h"
 
 class Compass : public Item , public Subject {
-  public:
-    int state() override;
-    std::string getName() const override;
-    Compass(Coordinate cdn);
+public:
+  int state() override;
+  std::string getName() const override;
+  Compass(Coordinate cdn);
 };
 
 #endif

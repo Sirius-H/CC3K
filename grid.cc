@@ -88,7 +88,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName) {
     //td->notify(*this);
 
     // Debugger
-    std::cout << *td;
+    //std::cout << *td;
 
 
     // split chambers

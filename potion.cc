@@ -1,11 +1,7 @@
 #include "potion.h"
 
-int Potion::state() {
-    return effect;
-}
+int Potion::state() { return effect; }
 
-std::string Potion::getName() const {
-    return "Potion";
-}
+std::string Potion::getName() const { return "Potion"; }
 
-Potion::Potion(Coordinate cdn, int effect) : Item{cdn}, effect{effect} {}
+Potion::Potion(Coordinate cdn, int effect) : Item{cdn}, effect{effect} { }
