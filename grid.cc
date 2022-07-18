@@ -243,6 +243,38 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
     }
 }
 
-
+void Grid::updateGrid() {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (theGrid[i][j]->getType() == "Enemy") { // if player is within 1 unit, attack
+                if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) {
+                    int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
+                    int dmg = theGrid[i][j]->attack(def);
+                    theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
+                } else { // else move one block
+                    std::vector<Coordinate> v;
+                    v.emplace_back(Coordinate{i, j + 1});
+                    v.emplace_back(Coordinate{i, j - 1});
+                    v.emplace_back(Coordinate{i + 1, j});
+                    v.emplace_back(Coordinate{i - 1, j});
+                    v.emplace_back(Coordinate{i + 1, j + 1});
+                    v.emplace_back(Coordinate{i + 1, j - 1});
+                    v.emplace_back(Coordinate{i - 1, j + 1});
+                    v.emplace_back(Coordinate{i - 1, j - 1});
+                    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+                    std::shuffle(v.begin(), v.end(), std::default_random_engine(seed));
+                    for (int k = 0; k < 8; k++) {
+                        if (canMoveToNPC(v[k]) == true) {
+                            delete theGrid[v[k].x][v[k].y];
+                            theGrid[v[k].x][v[k].y] = theGrid[i][j];
+                            theGrid[i][j] = new Floor{Coordinate{i, j}};
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 
