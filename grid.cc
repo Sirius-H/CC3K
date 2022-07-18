@@ -158,6 +158,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName) {
     int y2 = floors.at(1).y;
     delete theGrid.at(x2).at(y2);
     theGrid[x2][y2] = new Stair{floors[1]};
+    floors.clear();
 
 
 
