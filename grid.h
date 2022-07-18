@@ -22,6 +22,7 @@ class Grid: public Subject {
 public:
     Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
     void init(char c);
+    Coordinate& getPCLocation() const;
     void updatePlayer();
     void updateGrid();
     bool canMoveTo(Coordinate& cdn);

@@ -7,7 +7,7 @@ bool Cell::canStep() {
     return false;
 }
 
-int Cell::attack(int def) {
+int Cell::attack(int def) const {
     return 0;
 }
 
@@ -15,7 +15,7 @@ int Cell::attacked(int dmg) {
     return 0;
 }
 
-int Cell::getDefence(){
+int Cell::getDefence() const{
     return 0;
 }
 
