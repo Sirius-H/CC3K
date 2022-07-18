@@ -26,6 +26,7 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
      } else if (direction == "sw") {
         return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
      }
+     return Coordinate{0,0};
 }
 
 
