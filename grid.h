@@ -20,7 +20,7 @@ class Grid: public Subject {
     Coordinate PCLocation;
     TextDisplay* td;
 public:
-    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
+    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
     void init(char c);
     Coordinate& getPCLocation() const;
     void updatePlayer();
@@ -30,6 +30,7 @@ public:
     void usePotion(Coordinate& cdn);
     void PCAttack(Coordinate& cdn);
     ~Grid();
+    int randomInt(int x); // returns a random number between 0 and x-1
 
 };
 

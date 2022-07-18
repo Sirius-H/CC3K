@@ -16,7 +16,7 @@ protected:
     int pottionDefEffect = 0;
     int moved = 0;
 public:
-    PC(Coordinate cdn);
+    PC(Coordinate cdn, int coin = 0, bool withCompass = false, bool withBarrierSuit = false);
     int getDefence() const;
     virtual int attack(int NPCDefence) const;
     virtual int attacked(int dmg);

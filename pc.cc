@@ -1,7 +1,7 @@
 #include <math.h>
 #include "pc.h"
 
-PC::PC(Coordinate cdn): Cell{cdn} { }
+PC::PC(Coordinate cdn, int coin, bool withCompass, bool withBarrierSuit): Cell{cdn}, withCompass{withCompass}, withBarrierSuit{withBarrierSuit} {}
 
 int PC::getDefence() const { return Def; }
 
