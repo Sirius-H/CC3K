@@ -58,18 +58,42 @@ int main(int argc, char* argv[]) {
         } else {
             g = new Grid{"defaultFloor.txt", defaultSeed, pc};
         }
+
+        int currFloor = 1;
+
+
         // Game starts
         char cmd;
         while (cin >> cmd) {
+            // Moving Player Character
             if (cmd == 'n' || cmd == 's' || cmd == 'e' || cmd == 'w') {
-                string direction = "";
-                direction += cmd;
-                cin >> cmd;
-                direction += cmd;
-                Coordinate destination = convertCdn(g->getPCLocation(), direction);
-                if (g->canMoveTo(destination)) {
-                    // TO BE CONTINUED
+                try {
+                    string direction = "";
+                    direction += cmd;
+                    cin >> cmd;
+                    if (cin.fail()) throw "Incorrect direction format!";
+                    direction += cmd;
+                    Coordinate destination = convertCdn(g->getPCLocation(), direction);
+                    g->moveTo(g->getPCLocation(), destination);
+                } catch (string& errorMsg) {
+                    cout << errorMsg << endl;
+                    continue;
                 }
+            } else if (cmd == 'u') {
+                try{
+                    string direction;
+                    cin >> direction;
+                    if (cin.fail()) throw "Incorrect direction format!";
+                    Coordinate destination = convertCdn(g->getPCLocation(), direction);
+                    g->usePotion(destination);
+                } catch (string& errorMsg) {
+                    cout << errorMsg << endl;
+                    continue;
+                }
+
+            } else if (cmd == 'q') {
+                cout << "DEFEATED! (Player quits the game)" << endl;
+                break;
             }
             
 
@@ -79,6 +103,7 @@ int main(int argc, char* argv[]) {
 
 
         delete g;
+        return 0;
 
     } catch ( ... ) {
         return 1;
