@@ -8,7 +8,7 @@ protected:
     int Atk;
     int Def;
     bool withCompass;
-    int moved = 0;
+    int moved = 0; // 0 is not moved; 1 is moved
 public:
     NPC(Coordinate cdn);
     int getDefence() const;
@@ -16,6 +16,7 @@ public:
     int attacked(int dmg) override;
     std::string getType() const override;
     int state() override;
+    int setState() override;
 };
 
 #endif

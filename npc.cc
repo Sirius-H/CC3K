@@ -21,3 +21,5 @@ int NPC::attacked(int dmg) { // returns the actual damage to NPC
 std::string NPC::getType() const { return "NPC"; }
 
 int NPC::state() { return moved; }
+
+int NPC::setState() { moved = 1; }

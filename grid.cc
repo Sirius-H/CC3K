@@ -246,11 +246,12 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
 void Grid::updateGrid() {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            if (theGrid[i][j]->getType() == "Enemy") { // if player is within 1 unit, attack
+            if (theGrid[i][j]->getType() == "Enemy" && theGrid[i][j]->state() == 0) { // if player is within 1 unit, attack
                 if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) {
                     int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
                     int dmg = theGrid[i][j]->attack(def);
                     theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
+                    theGrid[i][j]->setState();
                 } else { // else move one block
                     std::vector<Coordinate> v;
                     v.emplace_back(Coordinate{i, j + 1});
@@ -268,6 +269,7 @@ void Grid::updateGrid() {
                             delete theGrid[v[k].x][v[k].y];
                             theGrid[v[k].x][v[k].y] = theGrid[i][j];
                             theGrid[i][j] = new Floor{Coordinate{i, j}};
+                            theGrid[v[k].x][v[k].y]->setState();
                             break;
                         }
                     }
@@ -282,6 +284,40 @@ bool Grid::canMoveToNPC(Coordinate& cdn) {
         return true;
     }
     return false;
+}
+
+bool Grid::canMoveTo(Coordinate& cdn) {
+    if (theGrid[cdn.x][cdn.y]->canStep() == true) {
+        return true;
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
+        throw "You should not be moving on to a wall";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
+        throw "You should not be moving on to a potion";
+    } else if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
+        throw "You should not be moving on to a NPC";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
+        throw "You need to beat the dragon to unlock this item";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
+        throw "You need to beat the dragon to unlock this item";
+    }
+    return false;
+}
+
+bool Grid::moveTo(Coordinate& oldCdn, Coordinate& newCdn) {
+    if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
+        return true;
+    }
+    if (canMoveTo(newCdn) == true) {
+        if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
+            int code = theGrid[newCdn.x][newCdn.y]->state();
+            PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+            p->applyEffect(code);
+        }
+        delete theGrid[newCdn.x][newCdn.y];
+        theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
+        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+        PCLocation = newCdn;
+    }
 }
 
 
