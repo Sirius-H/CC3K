@@ -27,7 +27,7 @@ void print( std::vector<Coordinate> const & v ) {
 
 
 
-Grid::Grid(std::string fileName, char PCName, unsigned seed) {
+Grid::Grid(std::string fileName, unsigned seed, char PCName) {
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);

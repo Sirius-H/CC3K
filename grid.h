@@ -26,7 +26,7 @@ class Grid: public Subject {
     Coordinate PCLocation;
     TextDisplay* td;
 public:
-    Grid(std::string fileName, char PCName = 'h', unsigned seed = std::chrono::system_clock::now().time_since_epoch().count());
+    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
     void init(char c);
     void updatePlayer();
     void updateGrid();

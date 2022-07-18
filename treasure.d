@@ -1,0 +1,1 @@
+treasure.o: treasure.cc
