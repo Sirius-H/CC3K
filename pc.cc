@@ -10,7 +10,7 @@ int PC::attack(int NPCDefence) const { return ceil(((double)100 / (100 + NPCDefe
 int PC::attacked(int dmg) { // returns the actual damage to PC
     int actualDmg = dmg;
     if (withBarrierSuit) {
-        actualDmg = std::ceil((double)dmg / 2);
+        actualDmg = ceil((double)dmg / 2);
     }
     if (HP - actualDmg <= 0) {
         actualDmg = HP;
