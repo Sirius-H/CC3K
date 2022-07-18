@@ -234,15 +234,20 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
     }
 
     if (barrierSuit) {
-        unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::shuffle(num.begin(), num.end(), std::default_random_engine(temp_seed));
-        std::vector<Coordinate> bsChamber = chambers[num[0]];
-        std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(temp_seed));
-        int x4 = bsChamber[0].x;
-        int y4 = bsChamber[0].y;
-        if (theGrid[x4][y4]->getName() == "Floor") {
-            delete theGrid[x4][y4];
-            theGrid[x4][y4] = new BarrierSuit{bsChamber[0]};
+        while (true) {
+            unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::shuffle(num.begin(), num.end(), std::default_random_engine(temp_seed));
+            std::vector<Coordinate> bsChamber = chambers[num[0]];
+            std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(temp_seed));
+            int x4 = bsChamber[0].x;
+            int y4 = bsChamber[0].y;
+            if (theGrid[x4][y4]->getName() == "Floor") {
+                delete theGrid[x4][y4];
+                theGrid[x4][y4] = new BarrierSuit{bsChamber[0]};
+                bsChamber.clear();
+                break;
+            }
+            bsChamber.clear();
         }
     }
 
