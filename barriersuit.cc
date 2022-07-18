@@ -9,3 +9,7 @@ int BarrierSuit::state() {
 void BarrierSuit::notify(Subject &Dragon) {
     canStep = true;
 }
+
+std::string BarrierSuit::getName() const {
+    return "BarrierSuit";
+}
