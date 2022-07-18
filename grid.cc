@@ -277,4 +277,11 @@ void Grid::updateGrid() {
     }
 }
 
+bool Grid::canMoveToNPC(Coordinate& cdn) {
+    if (theGrid[cdn.x][cdn.y]->getName() == "Floor") {
+        return true;
+    }
+    return false;
+}
+
 
