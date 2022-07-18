@@ -104,6 +104,18 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
             }
         }
     }
+
+    int height = tempGrid.size();
+    for (int i = 0; i < height; i++) {
+        int width = tempGrid[i].size();
+        for (int j; j < width; j++) {
+            delete tempGrid[i][j];
+        }
+        tempGrid[i].clear();
+    }
+    tempGrid.clear();
+
+
     
     
     // Step 2: Spawn PC
