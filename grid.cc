@@ -154,6 +154,7 @@ Grid::~Grid() {
     theGrid.clear();
     backupGrid.clear();
     allFloors.clear();
+    delete td;
 }
 
 

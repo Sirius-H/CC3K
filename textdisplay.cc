@@ -53,3 +53,13 @@ std::ostream& operator<<(std::ostream& out, TextDisplay& td) {
     }
     return out;
 }
+
+
+TextDisplay::~TextDisplay() {
+    int height = grid.size();
+    for (int i = 0; i < height; i++) {
+        grid[i].clear();
+    }
+    grid.clear();
+}
+
