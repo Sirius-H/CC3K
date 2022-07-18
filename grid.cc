@@ -191,17 +191,18 @@ Grid::~Grid() {
 
 void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate &c, int i) {
     delete tempGrid[c.x][c.y];
+    Coordinate currCdn{c.x, c.y};
     tempGrid[c.x][c.y] = new Wall{c, 1};
     if (i == 1) {
-        chamber1.emplace_back(c);
+        chamber1.emplace_back(&currCdn);
     } else if (i == 2) {
-        chamber2.emplace_back(c);
+        chamber2.emplace_back(&currCdn);
     } else if (i == 3) {
-        chamber3.emplace_back(c);
+        chamber3.emplace_back(&currCdn);
     } else if (i == 4) {
-        chamber4.emplace_back(c);
+        chamber4.emplace_back(&currCdn);
     } else if (i == 5) {
-        chamber5.emplace_back(c);
+        chamber5.emplace_back(&currCdn);
     }
     
     if (c.x - 1 >= 0 && tempGrid[c.x - 1][c.y]->getName() == "Floor") {
