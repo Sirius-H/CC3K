@@ -9,7 +9,8 @@ public:
     static void setHatred();
     Merchant(Coordinate cdn);
     std::string getName() const override;
-    int attack(int NPCDefence) const override;
+    int attack(int PCDefence) const override;
+    int attacked(int dmg) override;
 };
 
 #endif

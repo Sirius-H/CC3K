@@ -11,9 +11,9 @@ public:
     virtual std::string getType() const = 0;
     virtual std::string getName() const = 0;
     virtual bool canStep();
-    virtual int attack(int def);
+    virtual int attack(int def) const;
     virtual int attacked(int dmg);
-    virtual int getDefence();
+    virtual int getDefence() const;
     virtual ~Cell();
 };
 

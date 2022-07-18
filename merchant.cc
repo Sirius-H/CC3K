@@ -20,13 +20,27 @@ void Merchant::setHatred() {
     }
 }
 
-int Merchant::attack(int NPCDefence) const { 
-    if (Merchant::hatred != 0) {
+int Merchant::attack(int PCDefence) const { 
+    if (Merchant::hatred == 0) {
         return 0;
     }
-    return ceil(((double)100 / (100 + NPCDefence)) * Atk); 
+    return ceil(((double)100 / (100 + PCDefence)) * Atk); 
 }
 
 std::string Merchant::getName() const {
     return "Merchant";
 }
+
+
+int Merchant::attacked(int dmg) {
+    Merchant::hatred = 1;
+    int actualDmg = dmg;
+    if (HP - actualDmg <= 0) {
+        actualDmg = HP;
+        HP = 0;
+        return actualDmg;
+    }
+    HP -= actualDmg;
+    return actualDmg;
+}
+
