@@ -8,7 +8,7 @@ class Item : public Cell {
     bool canStep;
 
   public:
-    std::string getType();
+    std::string getType() const override;
     Item(Coordinate cdn);
 };
 
