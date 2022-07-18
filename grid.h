@@ -26,6 +26,7 @@ public:
     void updatePlayer();
     void updateGrid();
     bool canMoveTo(Coordinate& cdn);
+    bool canMoveToNPC(Coordinate& cdn);
     void moveTo(Coordinate& oldCdn, Coordinate& newCdn);
     void usePotion(Coordinate& cdn);
     void PCAttack(Coordinate& cdn);
