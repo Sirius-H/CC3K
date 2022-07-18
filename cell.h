@@ -8,7 +8,6 @@ class Cell {
 public:
     Cell(Coordinate cdn);
     virtual int state() = 0;
-    virtual int setState();
     virtual std::string getType() const = 0;
     virtual std::string getName() const = 0;
     virtual bool canStep();

@@ -16,7 +16,7 @@ public:
     int attacked(int dmg) override;
     std::string getType() const override;
     int state() override;
-    int setState() override;
+    void setState();
 };
 
 #endif
