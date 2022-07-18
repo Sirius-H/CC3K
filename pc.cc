@@ -5,7 +5,7 @@ PC::PC(Coordinate cdn): Cell{cdn} { }
 
 int PC::getDefence() const { return Def; }
 
-int PC::attack(int NPCDefence) const { return std::ceil(((double)100 / (100 + NPCDefence)) * (Atk + potionAtkEffect)); }
+int PC::attack(int NPCDefence) const { return ceil(((double)100 / (100 + NPCDefence)) * (Atk + potionAtkEffect)); }
 
 int PC::attacked(int dmg) { // returns the actual damage to PC
     int actualDmg = dmg;
