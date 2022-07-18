@@ -13,12 +13,20 @@ class TextDisplay;
 
 class Grid: public Subject {
     std::vector<std::vector<Cell*>> theGrid;
-    std::vector<std::vector<Cell*>> backupGrid;
-    std::map<Coordinate, int> allFloors;
+    //std::vector<std::vector<Cell*>> backupGrid;
+    //std::map<Coordinate, int> allFloors;
+    int w, h;
+    std::vector<Coordinate*> chamber1;
+    std::vector<Coordinate*> chamber2;
+    std::vector<Coordinate*> chamber3;
+    std::vector<Coordinate*> chamber4;
+    std::vector<Coordinate*> chamber5;
+    void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate &c, int i);
+
     Coordinate PCLocation;
     TextDisplay* td;
 public:
-    Grid(std::string fileName, char PCName = 'h', unsigned seed = std::chrono::system_clock::now().time_since_epoch().count());
+    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
     void init(char c);
     void updatePlayer();
     void updateGrid();

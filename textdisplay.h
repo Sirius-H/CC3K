@@ -12,6 +12,7 @@ class TextDisplay: public Observer {
 public:
     TextDisplay(std::vector<std::vector<Cell*>>& g);
     void notify(Subject& whoNotified) override;
+    ~TextDisplay();
     
     friend std::ostream& operator<<(std::ostream& out, TextDisplay& td);
 };

@@ -3,7 +3,7 @@
 
 int Merchant::hatred = 0;
 
-Merchant::Merchant(Coordinate cdn) : NPC{cdn} {
+Merchant::Merchant(Coordinate cdn): NPC{cdn} {
     HP = 30;
     Atk = 70;
     Def = 5;
@@ -24,7 +24,7 @@ int Merchant::attack(int NPCDefence) const {
     if (Merchant::hatred != 0) {
         return 0;
     }
-    return ceil(((double)100 / (100 + NPCDefence)) * (Atk + potionAtkEffect)); 
+    return ceil(((double)100 / (100 + NPCDefence)) * Atk); 
 }
 
 std::string Merchant::getName() const {

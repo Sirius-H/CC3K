@@ -3,7 +3,7 @@
 #include "npc.h"
 #include "subject.h"
 
-class Phoenix : public NPC, public Subject {
+class Phoenix: public NPC {
 public: 
     Phoenix(Coordinate cdn);
     std::string getName() const override;

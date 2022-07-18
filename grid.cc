@@ -27,13 +27,16 @@ void print( std::vector<Coordinate> const & v ) {
 
 
 
-Grid::Grid(std::string fileName, char PCName, unsigned seed) {
+Grid::Grid(std::string fileName, unsigned seed, char PCName) {
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);
     std::string s;
     int lineNum = 0;
     std::vector<Coordinate> floors;
+
+    std::vector<std::vector<Cell*>> tempGrid;
+
     while (std::getline(ifs, s)) { // 目前只实现了floor.txt中仅包含单张地图
         // Debugger
         //std::cout << s << std::endl;
@@ -49,23 +52,23 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
                 ptr2 = new Wall{currCdn, 1};
             } if (s[i] == '-') {
                 ptr1 = new Wall{currCdn, 2};
-                ptr2 = new Wall{currCdn, 2};
+                ptr2 = new Wall{currCdn, 1};
             } if (s[i] == ' ') {
                 ptr1 = new Wall{currCdn, 3};
-                ptr2 = new Wall{currCdn, 3};
+                ptr2 = new Wall{currCdn, 1};
             } else if (s[i] == '.') {
                 ptr1 = new Floor{currCdn};
                 ptr2 = new Floor{currCdn};
                 Coordinate currCdn{lineNum, i};
-                allFloors.emplace(currCdn, 0);
+                //allFloors.emplace(currCdn, 0);
                 floors.emplace_back(currCdn);
 
             } else if (s[i] == '#') {
                 ptr1 = new Passage{currCdn, 1};
-                ptr2 = new Passage{currCdn, 1};
+                ptr2 = new Wall{currCdn, 1};
             } else if (s[i] == '+') {
                 ptr1 = new Passage{currCdn, 2};
-                ptr2 = new Passage{currCdn, 2};
+                ptr2 = new Wall{currCdn, 1};
             } else {
                 // Debugger
                 //std::cout << "this line should not be printed" << std::endl;
@@ -75,7 +78,7 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
         }
         lineNum++;
         theGrid.emplace_back(tempRow1);
-        backupGrid.emplace_back(tempRow2);
+        tempGrid.emplace_back(tempRow2);
     }
     td = new TextDisplay{theGrid};
     // Debugger
@@ -87,6 +90,34 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
     //std::cout << *td;
 
 
+    // split chambers
+    // 默认grid不为空
+    h = tempGrid.size();
+    w = tempGrid[0].size();
+    for (int k = 0; k < 5; k++) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                if (tempGrid[i][j]->getName() == "Floor") {
+                    Coordinate currCdn{i, j};
+                    addChamber(tempGrid, currCdn, k);
+                }
+            }
+        }
+    }
+
+    int height = tempGrid.size();
+    for (int i = 0; i < height; i++) {
+        int width = tempGrid[i].size();
+        for (int j; j < width; j++) {
+            delete tempGrid[i][j];
+        }
+        tempGrid[i].clear();
+    }
+    tempGrid.clear();
+
+
+    
+    
     // Step 2: Spawn PC
     std::default_random_engine rng{seed};
     std::shuffle(floors.begin(), floors.end(), rng);
@@ -127,6 +158,7 @@ Grid::Grid(std::string fileName, char PCName, unsigned seed) {
     int y2 = floors.at(1).y;
     delete theGrid.at(x2).at(y2);
     theGrid[x2][y2] = new Stair{floors[1]};
+    floors.clear();
 
 
 
@@ -146,17 +178,66 @@ Grid::~Grid() {
         int width = theGrid[i].size();
         for (int j; j < width; j++) {
             delete theGrid[i][j];
-            delete backupGrid[i][j];
+            //delete backupGrid[i][j];
         }
         theGrid[i].clear();
-        backupGrid[i].clear();
+        //backupGrid[i].clear();
     }
     theGrid.clear();
-    backupGrid.clear();
-    allFloors.clear();
+    //backupGrid.clear();
+    //allFloors.clear();
+    delete td;
 }
 
 
-
+void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate &c, int i) {
+    delete tempGrid[c.x][c.y];
+    Coordinate currCdn{c.x, c.y};
+    tempGrid[c.x][c.y] = new Wall{c, 1};
+    if (i == 1) {
+        chamber1.emplace_back(&currCdn);
+    } else if (i == 2) {
+        chamber2.emplace_back(&currCdn);
+    } else if (i == 3) {
+        chamber3.emplace_back(&currCdn);
+    } else if (i == 4) {
+        chamber4.emplace_back(&currCdn);
+    } else if (i == 5) {
+        chamber5.emplace_back(&currCdn);
+    }
+    
+    if (c.x - 1 >= 0 && tempGrid[c.x - 1][c.y]->getName() == "Floor") {
+        Coordinate currCdn{c.x - 1, c.y};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.x + 1 < h && tempGrid[c.x + 1][c.y]->getName() == "Floor") {
+        Coordinate currCdn{c.x + 1, c.y};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.y - 1 >= 0 && tempGrid[c.x][c.y - 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x, c.y - 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.y + 1 < w && tempGrid[c.x][c.y + 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x, c.y + 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.x - 1 >= 0 && c.y - 1 >= 0 && tempGrid[c.x - 1][c.y - 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x - 1, c.y - 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.x + 1 < h && c.y - 1 >= 0 && tempGrid[c.x + 1][c.y - 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x + 1, c.y - 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.x - 1 >= 0 && c.y + 1 < w && tempGrid[c.x - 1][c.y + 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x - 1, c.y + 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+    if (c.x + 1 < h && c.y + 1 < w && tempGrid[c.x + 1][c.y + 1]->getName() == "Floor") {
+        Coordinate currCdn{c.x + 1, c.y + 1};
+        addChamber(tempGrid, currCdn, i);
+    }
+}
 
 
