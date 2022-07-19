@@ -331,82 +331,119 @@ int Grid::randomInt(int x) {
 }
 
 void Grid::updateGrid() {
-     for (int i = 0; i < h; i++) {
-         for (int j = 0; j < w; j++) {
-            if (theGrid[i][j]->getType() == "NPC") {
-                 NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
-                 if (theGrid[i][j]->state() == 0) { // if player is within 1 unit, attack
-                     if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) {
-                         int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
-                         int dmg = theGrid[i][j]->attack(def);
-                         theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
-                         n->setState();
-                     } else { // else move one block
-                         std::vector<Coordinate> v;
-                         v.emplace_back(Coordinate{i, j + 1});
-                         v.emplace_back(Coordinate{i, j - 1});
-                         v.emplace_back(Coordinate{i + 1, j});
-                         v.emplace_back(Coordinate{i - 1, j});
-                         v.emplace_back(Coordinate{i + 1, j + 1});
-                         v.emplace_back(Coordinate{i + 1, j - 1});
-                         v.emplace_back(Coordinate{i - 1, j + 1});
-                         v.emplace_back(Coordinate{i - 1, j - 1});
-                         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-                         std::shuffle(v.begin(), v.end(), std::default_random_engine(seed));
-                         for (int k = 0; k < 8; k++) {
-                             if (canMoveToNPC(v[k]) == true) {
-                                 delete theGrid[v[k].x][v[k].y];
-                                 theGrid[v[k].x][v[k].y] = theGrid[i][j];
-                                 theGrid[i][j] = new Floor{Coordinate{i, j}};
-                                 n->setState();
-                                 break;
-                             }
-                         }
-                     }
-                 }
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == 0) {
+                NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
+                 // if player is within 1 unit, attack
+                if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) {
+                    int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
+                    int dmg = theGrid[i][j]->attack(def);
+                    theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
+                    n->setState();
+                } else { // else move one block
+                    std::vector<Coordinate> v;
+                    v.emplace_back(Coordinate{i, j + 1});
+                    v.emplace_back(Coordinate{i, j - 1});
+                    v.emplace_back(Coordinate{i + 1, j});
+                    v.emplace_back(Coordinate{i - 1, j});
+                    v.emplace_back(Coordinate{i + 1, j + 1});
+                    v.emplace_back(Coordinate{i + 1, j - 1});
+                    v.emplace_back(Coordinate{i - 1, j + 1});
+                    v.emplace_back(Coordinate{i - 1, j - 1});
+                    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+                    std::shuffle(v.begin(), v.end(), std::default_random_engine(seed));
+                    for (int k = 0; k < 8; k++) {
+                        if (canMoveToNPC(v[k]) == true) {
+                            delete theGrid[v[k].x][v[k].y];
+                            theGrid[v[k].x][v[k].y] = theGrid[i][j];
+                            theGrid[i][j] = new Floor{Coordinate{i, j}};
+                            n->setState();
+                            break;
+                        }
+                    }
+                }
             }
-         }
-     }
+        }
+    }
 }
 
 bool Grid::canMoveToNPC(Coordinate& cdn) {
-     if (theGrid[cdn.x][cdn.y]->getName() == "Floor") {
-         return true;
-     }
-     return false;
- }
+    if (theGrid[cdn.x][cdn.y]->getName() == "Floor") {
+        return true;
+    }
+    return false;
+}
 
 bool Grid::canMoveTo(Coordinate& cdn) {
-     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
-         return true;
-     } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
-         throw "You should not be moving on to a wall";
-     } else if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
-         throw "You should not be moving on to a potion";
-     } else if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
-         throw "You should not be moving on to a NPC";
-     } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
-         throw "You need to beat the dragon to unlock this item";
-     } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
-         throw "You need to beat the dragon to unlock this item";
-     }
-     return false;
- }
+    if (theGrid[cdn.x][cdn.y]->canStep() == true) {
+        return true;
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
+        throw "You should not be moving on to a wall";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
+        throw "You should not be moving on to a potion";
+    } else if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
+        throw "You should not be moving on to a NPC";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
+        throw "You need to beat the dragon to unlock this item";
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
+        throw "You need to beat the dragon to unlock this item";
+    }
+    return false;
+}
 
- bool Grid::moveTo(Coordinate& newCdn) {
-     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
-         return true;
-     }
-     if (canMoveTo(newCdn) == true) {
-         if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
-             int code = theGrid[newCdn.x][newCdn.y]->state();
-             PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-             p->applyEffect(code);
-         }
-         delete theGrid[newCdn.x][newCdn.y];
-         theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
-         theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
-         PCLocation = newCdn;
-     }
- }
+bool Grid::moveTo(Coordinate& newCdn) {
+    if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
+        return true;
+    }
+    if (canMoveTo(newCdn) == true) {
+        if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
+            int code = theGrid[newCdn.x][newCdn.y]->state();
+            PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+            p->applyEffect(code);
+        }
+        delete theGrid[newCdn.x][newCdn.y];
+        theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
+        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+        PCLocation = newCdn;
+
+        std::vector<Coordinate> v = countNeighbour(PCLocation);
+        if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() != "Merchant") {
+            int def = theGrid[v[0].x][v[0].y]->getDefence();
+            int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
+            theGrid[v[0].x][v[0].y]->attacked(dmg);
+        } else if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() == "Merchant") {
+            std::cout << "You are within 1 block unit of a Merchant, would you like to initiate an attack?" << std::endl;
+            std::cout << "Press 'a' to attack"
+        }
+    }
+}
+
+std::vector<Coordinate> Grid::countNeighbour(Coordinate& cdn) {
+    std::vector<Coordinate> v;
+    if (theGrid[cdn.x - 1][cdn.y]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y});
+    }
+    if (theGrid[cdn.x + 1][cdn.y]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y});
+    }
+    if (theGrid[cdn.x][cdn.y - 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x, cdn.y - 1});
+    }
+    if (theGrid[cdn.x][cdn.y + 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x, cdn.y + 1});
+    }
+    if (theGrid[cdn.x - 1][cdn.y - 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y - 1});
+    }
+    if (theGrid[cdn.x - 1][cdn.y + 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y + 1});
+    }
+    if (theGrid[cdn.x + 1][cdn.y - 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y - 1});
+    }
+    if (theGrid[cdn.x + 1][cdn.y + 1]->getType() == "NPC") {
+        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y + 1});
+    }
+}
 

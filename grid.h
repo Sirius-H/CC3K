@@ -16,6 +16,7 @@ class Grid: public Subject {
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
     void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
+    std::vector<Coordinate> countNeighbour(Coordinate& cdn);
 
     Coordinate PCLocation;
     TextDisplay* td;
