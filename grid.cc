@@ -27,13 +27,29 @@
 #include "barriersuit.h"
 #include "npc.h"
 #include "merchant.h"
+#include "dragon.h"
+#include "vampire.h"
+#include "werewolf.h"
+#include "troll.h"
+#include "goblin.h"
+#include "phoenix.h"
 
 // Debugger
 void print( std::vector<Coordinate> const & v ) {
 	for ( Coordinate i : v ) std::cout << i << std::endl;
 }
 
-
+// returns a random number between 0 and x-1
+int randomInt(int x, unsigned seed) { 
+    std::vector<int> num;
+    for (int i = 0; i < x; i++) {
+        num.emplace_back(i);
+    }
+    std::shuffle(num.begin(), num.end(), std::default_random_engine(seed));
+    int answer = num[0];
+    num.clear();
+    return answer;
+}
 
 
 Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
@@ -164,7 +180,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     td->notify(*this); 
     // Debugger
     //std::cout << *td;
-    //print(floors);
+
     int x1 = PCchamber.at(0).x;
     int y1 = PCchamber.at(0).y;
     delete theGrid.at(x1).at(y1);
@@ -189,36 +205,58 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     }
     PCLocation = PCchamber[0];
 
+    // Debugger
+    std::cout << *td;
+
 
 
     // Step 3: Randomly generate Stair
-	std::shuffle(num.begin(), num.end(), std::default_random_engine{seed + 1});
+	std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
     std::vector<Coordinate> stairChamber = chambers[num[0]];
-    std::shuffle(stairChamber.begin(), stairChamber.end(), std::default_random_engine{seed + 1}));
-    int x2 = stairChamber.at(0).x;
-    int y2 = stairChamber.at(0).y;
-    delete theGrid.at(x2).at(y2);
-    theGrid[x2][y2] = new Stair{stairChamber[0]};
+    std::shuffle(stairChamber.begin(), stairChamber.end(), std::default_random_engine{++seed});
+    for (size_t i = 0; i < stairChamber.size(); i++) {
+        int x2 = stairChamber[i].x;
+        int y2 = stairChamber[i].y;
+        if (theGrid[x2][y2]->getName() == "Floor") {
+            delete theGrid.at(x2).at(y2);
+            theGrid[x2][y2] = new Stair{stairChamber[i]};
+            // Debugger
+            setState(std::pair<Coordinate, char>{stairChamber[i], 'G'});
+            td->notify(*this);
+
+            break;
+        }
+    }
+    // Debugger
+    std::cout << *td;
+    std::cout << ">>> Stair generated" << std::endl;
     
 
 
-
+    /*
     // Step 4: potion generations
     for (int i = 0; i < 10; i++) {
-		std::shuffle(num.begin(), num.end(), std::default_random_engine{seed + 2 + i}));
+		std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
         std::vector<Coordinate> potionChamber = chambers[num[0]];
-        std::shuffle(potionChamber.begin(), potionChamber.end(), std::default_random_engine(seed + 2 + i));
+        std::shuffle(potionChamber.begin(), potionChamber.end(), std::default_random_engine(seed));
 		for (size_t i = 0; i < potionChamber.size(); i++) {
 			if (canMoveTo(potionChamber[i])) {
 	            int x3 = potionChamber[i].x;
 	            int y3 = potionChamber[i].y;
 	            delete theGrid[x3][y3];
-	            theGrid[x3][y3] = new Potion{potionChamber[i], randomInt(6, seed + 3 + i)};
+	            theGrid[x3][y3] = new Potion{potionChamber[i], randomInt(6, ++seed)};
+                setState(std::pair<Coordinate, char>{potionChamber[i], 'G'});
+                td->notify(*this);
 				break;
 			}
 		}
         potionChamber.clear();
     }
+    // Debugger
+    std::cout << *td;
+    std::cout << ">>> Potion generated" << std::endl;
+
+
 
     // Step 5: Gold
 	int goldPileNum = 10; // Normal Mode
@@ -228,30 +266,55 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 		goldPileNum = 5;
 	}
     for (int i = 0; i < goldPileNum; i++) {
-        std::shuffle(num.begin(), num.end(), rng);
+        std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
         std::vector<Coordinate> goldChamber = chambers[num[0]];
-        std::shuffle(goldChamber.begin(), goldChamber.end(), rng);
-		
-        if (canMoveTo(goldChamber[0]) && theGrid(goldChamber[0]).getName() != "Treasure") {
-            int x3 = goldChamber[0].x;
-            int y3 = goldChamber[0].y;
-            delete theGrid[x3][y3];
-            int ri = randomInt(8);
-            int treasure = 0;
-            if (ri <= 4) {
-                treasure = 6;
-            } else if (ri == 5) {
-                treasure = 9;
-            } else if (ri > 5) {
-                treasure = 7;
+        std::shuffle(goldChamber.begin(), goldChamber.end(), std::default_random_engine{seed});
+		for (size_t i = 0; i < goldChamber.size(); i++) {
+            if (canMoveTo(goldChamber[i]) && theGrid[goldChamber[i].x][goldChamber[i].y]->getName() != "Treasure") {
+                int x3 = goldChamber[i].x;
+                int y3 = goldChamber[i].y;
+                delete theGrid[x3][y3];
+                int ri = randomInt(8, ++seed);
+                int treasure = 0;
+                if (ri <= 4) {
+                    treasure = 6;
+                } else if (ri == 5) {
+                    treasure = 9;
+                } else if (ri > 5) {
+                    treasure = 7;
+                }
+                Treasure* trs = new Treasure{goldChamber[i], treasure};
+                theGrid[x3][y3] = trs;
+                setState(std::pair<Coordinate, char>{goldChamber[i], 'G'});
+                td->notify(*this);
+                
+                if (treasure == 9) { // if this is a dragon horde, spawn a dragon next to it
+                    std::vector<Coordinate> treasureNeighours;
+                    for (int m = -1; m <= 1; m++) {
+                        for (int n = -1; n <= 1; n++) {
+                            if (theGrid[x3 + m][y3 + n]->getName() == "Floor") {
+                                treasureNeighours.emplace_back(Coordinate{x3 + m, y3 + n});
+                            }
+                        }
+                    }
+                    Coordinate dragonCdn = treasureNeighours[randomInt(treasureNeighours.size(), ++seed)];
+                    delete theGrid[dragonCdn.x][dragonCdn.y];
+                    theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
+                    treasureNeighours.clear();
+                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
+                    td->notify(*this);
+                    break;
+                }
             }
-            theGrid[x3][y3] = new Treasure{goldChamber[0], treasure};
-        } else {
-            i--;
         }
         goldChamber.clear();
     }
+    // Debugger
+    std::cout << *td;
+    std::cout << ">>> Treasure generated" << std::endl;
 
+
+    // Step 6: Barrier Suit
     if (barrierSuit) {
         while (true) {
             unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -269,6 +332,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             bsChamber.clear();
         }
     }
+    */
 
     // Step 6: NPC generation
     
@@ -279,6 +343,16 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     PCchamber.clear();
     num.clear();
 }
+
+
+
+
+
+
+
+
+
+
 
 
 Grid::~Grid() {
@@ -305,7 +379,6 @@ Grid::~Grid() {
 
 void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber) {
     delete tempGrid[c.x][c.y];
-    //Coordinate* currCdn = new Coordinate{c.x, c.y};
     tempGrid[c.x][c.y] = new Wall{c, 1};
     tempChamber.emplace_back(c);    
     if (c.x - 1 >= 0 && tempGrid[c.x - 1][c.y]->getName() == "Floor") {
@@ -334,16 +407,6 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
     }
 }
 
-int Grid::randomInt(int x, unsigned seed) { 
-    std::vector<int> num;
-    for (int i = 0; i < x; i++) {
-        num.emplace_back(i);
-    }
-    std::shuffle(num.begin(), num.end(), std::default_random_engine(seed));
-    int answer = num[0];
-    num.clear();
-    return answer;
-}
 
 void Grid::updateGrid() {
     for (int i = 0; i < h; i++) {
@@ -394,6 +457,7 @@ bool Grid::canMoveToNPC(Coordinate& cdn) {
     return false;
 }
 
+
 bool Grid::canMoveTo(Coordinate& cdn) { // for PC
     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
         return true;
@@ -406,10 +470,11 @@ bool Grid::canMoveTo(Coordinate& cdn) { // for PC
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
         std::cout << "You need to beat the dragon to unlock this item" << std::endl;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
-        std::cout << "You need to beat the dragon to unlock this item" std::endl;
+        std::cout << "You need to beat the dragon to unlock this item" << std::endl;
     }
     return false;
 }
+
 
 bool Grid::moveTo(Coordinate& newCdn) { // for PC
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
@@ -426,6 +491,7 @@ bool Grid::moveTo(Coordinate& newCdn) { // for PC
         theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
         PCLocation = newCdn;
 
+        // auto attack to surrounding NPC
         std::vector<Coordinate> v;
 		countNeighbour(PCLocation, v);
         if (v.size() == 1 && (theGrid[v[0].x][v[0].y]->getName() != "Merchant" || Merchant::hatred != 0)) {
@@ -448,13 +514,13 @@ bool Grid::moveTo(Coordinate& newCdn) { // for PC
 					std::cin.clear();
 					std::cin >> opt;
 					if (opt != 's') {
-						std::cout << "Invalid option, please select again" << std::cout;
+						std::cout << "Invalid option, please select again" << std::endl;
 						continue;
 					}
 					break;
 				} else {
-					if (numOpt < 0 || numOpt >= v.size()) {
-						std::cout << "Invalid option, please select again" << std::cout;
+					if (numOpt < 0 || numOpt >= (int)v.size()) {
+						std::cout << "Invalid option, please select again" << std::endl;
 						continue;
 					}
 					break;
@@ -464,16 +530,21 @@ bool Grid::moveTo(Coordinate& newCdn) { // for PC
 				return false; // skip the selection (do not attack any NPC)
 			} else {
 				PCAttack(v[numOpt]);
-				return false
+				return false;
 			}
+            return false;
+        } else {
+            return false;
         }
+    } else {
+        return false;
     }
 }
 
 void Grid::countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v) {
 	for (int i = -1; i <= 1; i++) {
 		for (int j = -1; j <= 1; j++) {
-			if (!(i == 0 & j == 0) && theGrid[cdn.x + i][cdn.y + j]->getType() == "NPC") {
+			if (!(i == 0 && j == 0) && theGrid[cdn.x + i][cdn.y + j]->getType() == "NPC") {
 				v.emplace_back(new Coordinate{cdn.x + i, cdn.y + j});
 			}
 		}
