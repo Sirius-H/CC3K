@@ -90,6 +90,17 @@ int main(int argc, char* argv[]) {
                     continue;
                 }
 
+            } else if (cmd == 'a') {
+                try{
+                    string direction;
+                    cin >> direction;
+                    if (cin.fail()) throw "Incorrect direction format!";
+                    Coordinate destination = convertCdn(g->getPCLocation(), direction);
+                    g->PCAttack(destination);
+                } catch (string& errorMsg) {
+                    cout << errorMsg << endl;
+                    continue;
+                }
             } else if (cmd == 'q') {
                 cout << "DEFEATED! (Player quits the game)" << endl;
                 break;

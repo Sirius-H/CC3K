@@ -6,6 +6,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <string>
 #include "grid.h"
 #include "cell.h"
 #include "mapelement.h"
@@ -410,12 +411,12 @@ bool Grid::moveTo(Coordinate& newCdn) {
         std::vector<Coordinate> v = countNeighbour(PCLocation);
         if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() != "Merchant") {
             try {
-                attack(v[0]);
+                PCAttack(v[0]);
             }
-            catch (...) {
+            catch (std::string& errorMsg) {
                 std::cout << "an error occured when initiating an attack at move" << std::endl;
             }
-        } else if (v.size > 0) {
+        } else if (v.size() > 0) {
             throw "There is a 'Merchant' npc within 1 block unit, or there are more than one npc within 1 block unit.";
         }
     }
@@ -455,6 +456,6 @@ void Grid::PCAttack(Coordinate& cdn) {
         int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
         theGrid[cdn.x][cdn.y]->attacked(dmg);
     } else {
-        throw "There is no NPC at the position you are attacking."
+        throw "There is no NPC at the position you are attacking.";
     }
 }
