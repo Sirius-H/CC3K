@@ -409,12 +409,14 @@ bool Grid::moveTo(Coordinate& newCdn) {
 
         std::vector<Coordinate> v = countNeighbour(PCLocation);
         if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() != "Merchant") {
-            int def = theGrid[v[0].x][v[0].y]->getDefence();
-            int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
-            theGrid[v[0].x][v[0].y]->attacked(dmg);
-        } else if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() == "Merchant") {
-            std::cout << "You are within 1 block unit of a Merchant, would you like to initiate an attack?" << std::endl;
-            std::cout << "Press 'a' to attack"
+            try {
+                attack(v[0]);
+            }
+            catch (...) {
+                std::cout << "an error occured when initiating an attack at move" << std::endl;
+            }
+        } else if (v.size > 0) {
+            throw "There is a 'Merchant' npc within 1 block unit, or there are more than one npc within 1 block unit.";
         }
     }
 }
@@ -447,3 +449,12 @@ std::vector<Coordinate> Grid::countNeighbour(Coordinate& cdn) {
     }
 }
 
+void Grid::PCAttack(Coordinate& cdn) {
+    if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
+        int def = theGrid[cdn.x][cdn.y]->getDefence();
+        int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
+        theGrid[cdn.x][cdn.y]->attacked(dmg);
+    } else {
+        throw "There is no NPC at the position you are attacking."
+    }
+}
