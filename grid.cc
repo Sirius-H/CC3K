@@ -37,6 +37,16 @@ void print( std::vector<Coordinate> const & v ) {
 
 
 Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
+	gameDiffLevel = 1; // default: normal difficulty level
+	#ifdef EASYMODE
+	gameDiffLevel = 0;
+	#endif
+	#ifdef MEDIUMMODE
+	gameDiffLevel = 1;
+	#endif
+	#ifdef HARDMODE
+	gameDiffLevel = 2;
+	#endif
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);
@@ -211,12 +221,18 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     }
 
     // Step 5: Gold
-    for (int i = 0; i < 10; i++) {
-        unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::shuffle(num.begin(), num.end(), std::default_random_engine(temp_seed));
+	int goldPileNum = 10; // Normal Mode
+	if (gameDiffLevel == 0) { // Easy Mode
+		goldPileNum = 15;
+	} else if (goldPileNum == 2) { // Hard Mode
+		goldPileNum = 5;
+	}
+    for (int i = 0; i < goldPileNum; i++) {
+        std::shuffle(num.begin(), num.end(), rng);
         std::vector<Coordinate> goldChamber = chambers[num[0]];
-        std::shuffle(goldChamber.begin(), goldChamber.end(), std::default_random_engine(temp_seed));
-        if (canMoveTo(goldChamber[0])) {
+        std::shuffle(goldChamber.begin(), goldChamber.end(), rng);
+		
+        if (canMoveTo(goldChamber[0]) && theGrid(goldChamber[0]).getName() != "Treasure") {
             int x3 = goldChamber[0].x;
             int y3 = goldChamber[0].y;
             delete theGrid[x3][y3];

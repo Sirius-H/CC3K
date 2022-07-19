@@ -21,6 +21,10 @@ class Grid: public Subject {
     Coordinate PCLocation;
     TextDisplay* td;
 	unsigned seed;
+	int gameDiffLevel;
+	// 0: easy mode (more gold, NPC 1/2 HP)
+	// 1: medium mode (normal mode)
+	// 2: hard mode (less gold, NPC 1.5X Atk) (to be implemented)
 public:
     Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
     void init(char c);
