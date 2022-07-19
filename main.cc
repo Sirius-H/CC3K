@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
                     if (cin.fail()) throw "Incorrect direction format!";
                     Coordinate destination = convertCdn(g->getPCLocation(), direction);
                     g->usePotion(destination);
-                } catch (string& errorMsg) {
-                    cout << errorMsg << endl;
+                } catch (runtime_error& errorMsg) {
+                    cout << errorMsg.what() << endl;
                     continue;
                 }
 
@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
                     if (cin.fail()) throw "Incorrect direction format!";
                     Coordinate destination = convertCdn(g->getPCLocation(), direction);
                     g->PCAttack(destination);
-                } catch (string& errorMsg) {
-                    cout << errorMsg << endl;
+                } catch (runtime_error& errorMsg) {
+                    cout << errorMsg.what() << endl;
                     continue;
                 }
             } else if (cmd == 'q') {

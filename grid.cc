@@ -7,6 +7,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <stdexcept>
+#include "termcodes.h"
 #include "grid.h"
 #include "cell.h"
 #include "mapelement.h"
@@ -24,6 +26,7 @@
 #include "treasure.h"
 #include "barriersuit.h"
 #include "npc.h"
+#include "merchant.h"
 
 // Debugger
 void print( std::vector<Coordinate> const & v ) {
@@ -33,7 +36,7 @@ void print( std::vector<Coordinate> const & v ) {
 
 
 
-Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
+Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);
@@ -123,9 +126,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
     }
     */
 
-
-
-
     int height = tempGrid.size();
     for (int i = 0; i < height; i++) {
         int width = tempGrid[i].size();
@@ -182,8 +182,9 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
 
 
     // Step 3: Randomly generate Stair
-    std::vector<Coordinate> stairChamber = chambers[num[1]];
-    std::shuffle(stairChamber.begin(), stairChamber.end(), rng);
+	std::shuffle(num.begin(), num.end(), std::default_random_engine{seed + 1});
+    std::vector<Coordinate> stairChamber = chambers[num[0]];
+    std::shuffle(stairChamber.begin(), stairChamber.end(), std::default_random_engine{seed + 1}));
     int x2 = stairChamber.at(0).x;
     int y2 = stairChamber.at(0).y;
     delete theGrid.at(x2).at(y2);
@@ -194,18 +195,18 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
 
     // Step 4: potion generations
     for (int i = 0; i < 10; i++) {
-        unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::shuffle(num.begin(), num.end(), std::default_random_engine(temp_seed));
+		std::shuffle(num.begin(), num.end(), std::default_random_engine{seed + 2 + i}));
         std::vector<Coordinate> potionChamber = chambers[num[0]];
-        std::shuffle(potionChamber.begin(), potionChamber.end(), std::default_random_engine(temp_seed));
-        if (canMoveTo(potionChamber[0])) {
-            int x3 = potionChamber[0].x;
-            int y3 = potionChamber[0].y;
-            delete theGrid[x3][y3];
-            theGrid[x3][y3] = new Potion{potionChamber[0], randomInt(6)};
-        } else {
-            i--;
-        }
+        std::shuffle(potionChamber.begin(), potionChamber.end(), std::default_random_engine(seed + 2 + i));
+		for (size_t i = 0; i < potionChamber.size(); i++) {
+			if (canMoveTo(potionChamber[i])) {
+	            int x3 = potionChamber[i].x;
+	            int y3 = potionChamber[i].y;
+	            delete theGrid[x3][y3];
+	            theGrid[x3][y3] = new Potion{potionChamber[i], randomInt(6, seed + 3 + i)};
+				break;
+			}
+		}
         potionChamber.clear();
     }
 
@@ -264,8 +265,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit) {
 }
 
 
-
-
 Grid::~Grid() {
     // Deleting theGrid
     int height = theGrid.size();
@@ -319,9 +318,8 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
     }
 }
 
-int Grid::randomInt(int x) { 
+int Grid::randomInt(int x, unsigned seed) { 
     std::vector<int> num;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     for (int i = 0; i < x; i++) {
         num.emplace_back(i);
     }
@@ -370,30 +368,34 @@ void Grid::updateGrid() {
 }
 
 bool Grid::canMoveToNPC(Coordinate& cdn) {
-    if (theGrid[cdn.x][cdn.y]->getName() == "Floor") {
+    std::string name = theGrid[cdn.x][cdn.y]->getName();
+    if (name == "Floor") {
         return true;
+    }
+    if (name == "Stair") {
+        return !theGrid[cdn.x][cdn.y]->state(); // 如果目前玩家已经拿到了compass (i.e.: stair revealed = true), 则NPC不可以踩在stair上；如果not revealed，就可以当成普通floor随便踩
     }
     return false;
 }
 
-bool Grid::canMoveTo(Coordinate& cdn) {
+bool Grid::canMoveTo(Coordinate& cdn) { // for PC
     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
         return true;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
-        throw "You should not be moving on to a wall";
+        std::cout << "You should not be moving on to a wall" << std::endl;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
-        throw "You should not be moving on to a potion";
+        std::cout << "You should not be moving on to a potion" << std::endl;
     } else if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
-        throw "You should not be moving on to a NPC";
+        std::cout << "You should not be moving on to a NPC" << std::endl;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
-        throw "You need to beat the dragon to unlock this item";
+        std::cout << "You need to beat the dragon to unlock this item" << std::endl;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
-        throw "You need to beat the dragon to unlock this item";
+        std::cout << "You need to beat the dragon to unlock this item" std::endl;
     }
     return false;
 }
 
-bool Grid::moveTo(Coordinate& newCdn) {
+bool Grid::moveTo(Coordinate& newCdn) { // for PC
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
         return true;
     }
@@ -408,46 +410,58 @@ bool Grid::moveTo(Coordinate& newCdn) {
         theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
         PCLocation = newCdn;
 
-        std::vector<Coordinate> v = countNeighbour(PCLocation);
-        if (v.size() == 1 && theGrid[v[0].x][v[0].y]->getName() != "Merchant") {
+        std::vector<Coordinate> v;
+		countNeighbour(PCLocation, v);
+        if (v.size() == 1 && (theGrid[v[0].x][v[0].y]->getName() != "Merchant" || Merchant::hatred != 0)) {
             try {
                 PCAttack(v[0]);
             }
-            catch (std::string& errorMsg) {
-                std::cout << "an error occured when initiating an attack at move" << std::endl;
+            catch (std::runtime_error& errorMsg) {
+                std::cout << errorMsg.what() << std::endl;
             }
         } else if (v.size() > 0) {
-            throw "There is a 'Merchant' npc within 1 block unit, or there are more than one npc within 1 block unit.";
+			std::cout << "More than 1 enermy around, please choose one to attack, or press 's' to skip (i.e.: do not attack)" << std::endl;
+			for (size_t i = 0; i < v.size(); i++) {
+				std::cout << YELLOW <<  "(" << i << "): " << RESET << "Coordinate: " << v[i] << "  " << theGrid[v[i].x][v[i].y]->getName() << std::endl;
+			}
+			char opt = 'n';
+			int numOpt;
+			while (true) {
+				std::cin >> numOpt;
+				if (std::cin.fail()) {
+					std::cin.clear();
+					std::cin >> opt;
+					if (opt != 's') {
+						std::cout << "Invalid option, please select again" << std::cout;
+						continue;
+					}
+					break;
+				} else {
+					if (numOpt < 0 || numOpt >= v.size()) {
+						std::cout << "Invalid option, please select again" << std::cout;
+						continue;
+					}
+					break;
+				}
+			}
+			if (opt == 's') {
+				return false; // skip the selection (do not attack any NPC)
+			} else {
+				PCAttack(v[numOpt]);
+				return false
+			}
         }
     }
 }
 
-std::vector<Coordinate> Grid::countNeighbour(Coordinate& cdn) {
-    std::vector<Coordinate> v;
-    if (theGrid[cdn.x - 1][cdn.y]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y});
-    }
-    if (theGrid[cdn.x + 1][cdn.y]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y});
-    }
-    if (theGrid[cdn.x][cdn.y - 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x, cdn.y - 1});
-    }
-    if (theGrid[cdn.x][cdn.y + 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x, cdn.y + 1});
-    }
-    if (theGrid[cdn.x - 1][cdn.y - 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y - 1});
-    }
-    if (theGrid[cdn.x - 1][cdn.y + 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x - 1, cdn.y + 1});
-    }
-    if (theGrid[cdn.x + 1][cdn.y - 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y - 1});
-    }
-    if (theGrid[cdn.x + 1][cdn.y + 1]->getType() == "NPC") {
-        v.emplace_back(new Coordinate{cdn.x + 1, cdn.y + 1});
-    }
+void Grid::countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v) {
+	for (int i = -1; i <= 1; i++) {
+		for (int j = -1; j <= 1; j++) {
+			if (!(i == 0 & j == 0) && theGrid[cdn.x + i][cdn.y + j]->getType() == "NPC") {
+				v.emplace_back(new Coordinate{cdn.x + i, cdn.y + j});
+			}
+		}
+	}
 }
 
 void Grid::PCAttack(Coordinate& cdn) {
@@ -456,6 +470,6 @@ void Grid::PCAttack(Coordinate& cdn) {
         int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
         theGrid[cdn.x][cdn.y]->attacked(dmg);
     } else {
-        throw "There is no NPC at the position you are attacking.";
+        throw std::runtime_error("There is no NPC at the position you are attacking.");
     }
 }
