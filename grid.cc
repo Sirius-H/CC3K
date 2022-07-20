@@ -715,3 +715,7 @@ void Grid::printState(int floorNum) const {
 void Grid::buyPotion(string s) {
     if 
 }
+
+void Grid::getHP() {
+    return theGrid[PCLocation.x][PCLocation.y]->getHP();
+}
