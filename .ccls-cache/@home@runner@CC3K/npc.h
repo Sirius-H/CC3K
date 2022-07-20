@@ -10,6 +10,7 @@ protected:
     bool withCompass;
     int moved = 0;
 public:
+    static int currInitState; // if state == currInitState  => NPC has not been moved
     NPC(Coordinate cdn);
     int getDefence() const override;
     int attack(int PCDefence) const override;
@@ -17,7 +18,7 @@ public:
     std::string getType() const override;
     int state() override;
     void setMoved();
-    int getHP() const;
+    int getHP() const override;
     int getAtk() const;
     int getDef() const;
 };

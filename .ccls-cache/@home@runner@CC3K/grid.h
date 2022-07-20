@@ -43,5 +43,5 @@ public:
     void buyPotion(std::string s);
     int getHP();
 };
-
+Coordinate convertCdn(const Coordinate& oldCdn, std::string direction);
 #endif

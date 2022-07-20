@@ -36,6 +36,29 @@
 #include "goblin.h"
 #include "phoenix.h"
 
+Coordinate convertCdn(const Coordinate& oldCdn, std::string direction) {
+     if (direction == "no") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y};
+     } else if (direction == "so") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y};
+     } else if (direction == "ea") {
+        return Coordinate{oldCdn.x, oldCdn.y + 1};
+     } else if (direction == "we") {
+        return Coordinate{oldCdn.x, oldCdn.y - 1};
+     } else if (direction == "ne") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y + 1};
+     } else if (direction == "nw") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y - 1};
+     } else if (direction == "se") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y + 1};
+     } else if (direction == "sw") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
+     } else {
+		// Debugger
+		throw std::runtime_error("Wrong direction!");
+        return oldCdn;
+     }
+}
 // Debugger
 void print( std::vector<Coordinate> const &v ) {
 	for ( Coordinate i : v ) std::cout << i << std::endl;
@@ -740,9 +763,45 @@ void Grid::printState(int floorNum) const {
     }
 }
 
-void Grid::buyPotion(string s) {
-    if 
+void Grid::buyPotion(std::string s) {
+    int x = getPCLocation().x;
+    int y = getPCLocation().y;
+    std::vector<Coordinate> v;
+    char c;
+    countNeighbour(PCLocation, v);
+    if (Merchant::hatred != 0) return;
+    for (size_t i = 0; i < v.size(); i++) { // Freeze all the merchants 1 unit around PC
+        if (theGrid[v[i].x][v[i].y]->getName() == "Merchant" && Merchant::hatred == 0) {
+            dynamic_cast<NPC*>(theGrid[v[i].x][v[i].y])->setMoved();
+        }
+    }
+    Coordinate l = convertCdn(getPCLocation(), s);
+    if (theGrid[l.x][l.y]->getName() == "Merchant") {
+		std::cout << "Each potion costs 10 coins" << std::endl;
+        for (int i = 0; i < 3; i++) {
+            int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[i];
+            std::cout << i + 1 << ": " << codeTranslator(effect) << std::endl;
+        }
+        std::cin >> c;
+        while (c != 's' || !std::cin.fail()) {
+            if (c - '0' == 1 || c - '0' == 2 || c - '0' == 3) {
+                if (PC::coin >= 10) { // If PC has enough money to buy this potion
+                    PC::coin -= 10;
+                    int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[c - '1'];
+                    dynamic_cast<PC*>(theGrid[x][y])->applyEffect(potionBought);
+                    std::cout << "Potion bought successfully" << std::endl;
+                } else {
+                    std::cout << "Not enough gold!" << std::endl;
+                }
+            } else {
+                std::cout << "wrong number!" << std::endl;
+            }
+			std::cout << "Press s to escape" << std::endl;
+            std::cin >> c;
+        }        
+    }
 }
+
 
 int Grid::getHP() {
     return theGrid[PCLocation.x][PCLocation.y]->getHP();

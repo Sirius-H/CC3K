@@ -1,12 +1,21 @@
 #include <math.h>
 #include "merchant.h"
-
+#include <random>
 int Merchant::hatred = 0;
 
 Merchant::Merchant(Coordinate cdn): NPC{cdn} {
     HP = 30;
     Atk = 70;
     Def = 5;
+    std::vector<int> randPotions;
+    for (int i = 0; i < 6; i++) {
+        randPotions.emplace_back(i + 1);
+    }
+    std::shuffle(randPotions.begin(), randPotions.end(), std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+    for (int i = 0; i < 3; i++) {
+        potions.emplace_back(randPotions[i]);
+    }
+    randPotions.clear();
 }
 
 

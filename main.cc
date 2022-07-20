@@ -11,6 +11,7 @@
 #include "pc.h"
 using namespace std;
 
+/*
 Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
      if (direction == "no") {
         return Coordinate{oldCdn.x - 1, oldCdn.y};
@@ -34,7 +35,7 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
         return oldCdn;
      }
 }
-
+*/
 
 void printIntroMsg() {
 	std::cout << "Please select your PC character:" << std::endl;
@@ -230,7 +231,15 @@ int main(int argc, char* argv[]) {
 			}
 			g->printState(currFloor);
 			continue;
-        } else {
+        } else if (cmd == 'b') {
+			string s;
+			cin >> cmd;
+			s += cmd;
+			cin >> cmd;
+			s += cmd;
+			g->buyPotion(s);
+			g->updateGrid();
+		} else {
 			std::cout << "Invalid command, please try again!" << std::endl;
 			continue;
 		}
