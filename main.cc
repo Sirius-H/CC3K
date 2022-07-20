@@ -128,6 +128,10 @@ int main(int argc, char* argv[]) {
 				}
 				g->updateGrid();
 				g->printState(currFloor);
+                if (g->getHP() == 0) {
+                    cout << "DEFEATED!" << std::endl;
+                    break;
+                }
 				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
@@ -147,6 +151,10 @@ int main(int argc, char* argv[]) {
 				g->usePotion(destination);
 				g->updateGrid();
 				g->printState(currFloor);
+                if (g->getHP() == 0) {
+                    cout << "DEFEATED!" << std::endl;
+                    break;
+                }
 				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
@@ -164,6 +172,10 @@ int main(int argc, char* argv[]) {
 				g->PCAttack(destination);
 				g->updateGrid();
 				g->printState(currFloor);
+                if (g->getHP() == 0) {
+                    cout << "DEFEATED!" << std::endl;
+                    break;
+                }
 				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;

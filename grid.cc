@@ -77,7 +77,7 @@ std::string codeTranslator(int code) {
     }
 } 
 
-
+// Helper
 char SymTranslator(std::string code) {
     if  (code == "Vampire") { return 'V'; }
     else if  (code == "Werewolf") { return 'W'; }
@@ -94,7 +94,7 @@ char SymTranslator(std::string code) {
 
 
 
-// returns a random number between 0 and x-1
+// Returns a random number between 0 and x-1
 int randomInt(int x, unsigned seed) { 
     std::vector<int> num;
     for (int i = 0; i < x; i++) {
@@ -107,6 +107,7 @@ int randomInt(int x, unsigned seed) {
 }
 
 
+// Constructor (init the game)
 Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
 	gameDiffLevel = 1; // default: normal difficulty level
 	#ifdef EASYMODE
@@ -170,7 +171,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     //std::cout << *td;
 
 
-    // split chambers
+    // Split chambers
     // 默认grid不为空
     h = tempGrid.size();
     w = tempGrid[0].size();
@@ -384,8 +385,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     // Step 6: Barrier Suit
     if (barrierSuit) {
         while (true) {
-            unsigned temp_seed = std::chrono::system_clock::now().time_since_epoch().count();
-            std::shuffle(num.begin(), num.end(), std::default_random_engine(temp_seed));
+            std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
             std::vector<Coordinate> bsChamber = chambers[num[0]];
             std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(temp_seed));
             int x4 = bsChamber[0].x;
@@ -417,7 +417,7 @@ Coordinate& Grid::getPCLocation() {
 }
 
 
-
+// Destructor
 Grid::~Grid() {
     // Deleting theGrid
     int height = theGrid.size();
@@ -631,7 +631,7 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
             return false;
         }
         return false;
-    }
+    } 
     return false;
 }
 
@@ -712,3 +712,6 @@ void Grid::printState(int floorNum) const {
     }
 }
 
+void Grid::buyPotion(string s) {
+    if 
+}

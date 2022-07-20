@@ -24,7 +24,13 @@ std::string NPC::getType() const { return "NPC"; }
 
 int NPC::state() { return moved; }
 
-void NPC::setMoved() { moved = 1; }
+void NPC::setMoved() {
+    if (moved == 1) {
+        moved = 0;
+    } else {
+        moved = 1;
+    }
+}
 
 int NPC::getHP() const { return HP; }
 int NPC::getAtk() const { return Atk; }
