@@ -72,3 +72,7 @@ int PC::getHP() const { return HP; }
 int PC::getAtk() const { return Atk; }
 int PC::getDef() const { return Def; }
 bool PC::getWithBarrierSuit() const {return withBarrierSuit; }
+static void Grid::resetCoin() {
+    coin = 0;
+    totalCoin = 0;
+}

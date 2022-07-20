@@ -17,7 +17,6 @@ public:
     std::string getType() const override;
     int state() override;
     void setMoved();
-	void setCoin(double coin);
     int getHP() const;
     int getAtk() const;
     int getDef() const;

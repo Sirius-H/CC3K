@@ -39,7 +39,6 @@ public:
     void PCAttack(Coordinate cdn);
     void printState();
     ~Grid();
-    double getCoin() const;
 };
 
 #endif

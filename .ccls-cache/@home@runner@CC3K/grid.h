@@ -17,7 +17,6 @@ class Grid: public Subject {
     int h, w;
     void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
-    static int totalCoin;
     Coordinate PCLocation;
     TextDisplay* td;
 	unsigned seed;
@@ -40,7 +39,6 @@ public:
     void PCAttack(Coordinate cdn);
     void printState();
     ~Grid();
-    double getCoin() const;
 };
 
 #endif

@@ -20,7 +20,7 @@ public:
     PC(Coordinate cdn, bool withCompass = false, bool withBarrierSuit = false);
     int getDefence() const override;
     virtual int attack(int NPCDefence) const;
-    virtual int attacked(int dmg);
+    virtual int attacked(int dmg) const;
     virtual void applyEffect(int effect);
     std::string getType() const override;
     int state() override;
@@ -28,6 +28,7 @@ public:
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;
+    static void resetCoin();
 };
 
 #endif
