@@ -7,6 +7,7 @@ class Cell {
     Coordinate cdn;
 public:
     Cell(Coordinate cdn);
+    void setCdn(Coordinate c);
     virtual int state() = 0;
     virtual std::string getType() const = 0;
     virtual std::string getName() const = 0;

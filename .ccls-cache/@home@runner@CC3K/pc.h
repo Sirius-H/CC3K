@@ -26,6 +26,7 @@ public:
     int getHP() const;
     int getAtk() const;
     int getDef() const;
+    bool getWithCompass() const;
     bool getWithBarrierSuit() const;
     double getCoin() const;
 	void setCoin(double coin);

@@ -67,8 +67,14 @@ int main(int argc, char* argv[]) {
             g = new Grid{"defaultFloor.txt", defaultSeed, pc};
         }
         int currFloor = 1;
-
-        /* 
+        std::vector<int> n;
+        for (int i = 0; i < 4; i++) {
+            n.emplace_back(i + 1);
+        }
+        std::shuffle(n.begin(), n.end(), std::default_random_engine{defaultSeed});
+        int barrierFloor = n[0];
+        n.clear();
+        
         // Game starts
         char cmd;
         while (cin >> cmd) {
@@ -81,7 +87,20 @@ int main(int argc, char* argv[]) {
                     if (cin.fail()) throw "Incorrect direction format!";
                     direction += cmd;
                     Coordinate destination = convertCdn(g->getPCLocation(), direction);
-                    g->moveTo(destination);
+                    if (g->moveTo(destination)) {
+                        if (currFloor == 5) {
+                            cout << "You Win! Your Score is: " << PC::totalCoin << endl;
+                            return;
+                        }
+                        currFloor += 1;
+                        double coin = g->getCoin();
+                        delete g;
+                        if (currFloor == barrierFloor) {
+                            g = new Grid{argv[1], ++defaultSeed, pc, true, coin};
+                        } else {
+                            g = new Grid{argv[1], ++defaultSeed, pc, false, coin};
+                        }
+                    }
                 } catch (string& errorMsg) {
                     cout << errorMsg << endl;
                     continue;
@@ -114,14 +133,12 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
-        */
+        
         delete g;
         return 0;
     } catch ( ... ) {
         return 1;
     }
-
-    // this is a testing message for Replit
 
 
 

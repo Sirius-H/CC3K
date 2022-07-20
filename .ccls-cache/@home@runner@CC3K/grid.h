@@ -17,28 +17,30 @@ class Grid: public Subject {
     int h, w;
     void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
-
+    static int totalCoin;
     Coordinate PCLocation;
     TextDisplay* td;
 	unsigned seed;
+	double coinVal;	
 	int gameDiffLevel;
 	// 0: easy mode (more gold, NPC 1/2 HP)
 	// 1: medium mode (normal mode)
 	// 2: hard mode (less gold, NPC 1.5X Atk) (to be implemented)
+    void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
 public:
-    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
+    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false, int coinVal = 0);
     void init(char c);
-    Coordinate& getPCLocation() const;
+    Coordinate& getPCLocation();
     void updatePlayer();
     void updateGrid();
-    bool canMoveTo(Coordinate& cdn);
-    bool canMoveToNPC(Coordinate& cdn);
-    bool moveTo(Coordinate& newCdn);
-    void usePotion(Coordinate& cdn);
-    void PCAttack(Coordinate& cdn);
+    bool canMoveTo(Coordinate cdn);
+    bool canMoveToNPC(Coordinate cdn);
+    bool moveTo(Coordinate newCdn);
+    void usePotion(Coordinate cdn);
+    void PCAttack(Coordinate cdn);
+    void printState();
     ~Grid();
-    int randomInt(int x); // returns a random number between 0 and x-1
-
+    double getCoin() const;
 };
 
 #endif
