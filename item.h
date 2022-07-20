@@ -4,10 +4,10 @@
 
 class Item : public Cell {
 protected:
-  bool canStep;
+  bool canStepOn;
 public:
   std::string getType() const override;
-  Item(Coordinate cdn);
+  Item(Coordinate cdn, bool canStepOn = false);
 };
 
 #endif

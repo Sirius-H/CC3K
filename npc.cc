@@ -1,6 +1,8 @@
 #include <math.h>
 #include "npc.h"
 
+int NPC::currInitState = 0;
+
 NPC::NPC(Coordinate cdn) : Cell{cdn} { }
 
 int NPC::getDefence() const { return Def; }

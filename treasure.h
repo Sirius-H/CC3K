@@ -10,6 +10,7 @@ class Treasure : public Item, public Observer {
     int state() override;
     void notify(Subject &Dragon) override;
     std::string getName() const override;
+    bool canStep() override;
     Treasure(Coordinate cdn, int treasure);
 };
 

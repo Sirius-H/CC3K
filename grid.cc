@@ -77,6 +77,23 @@ std::string codeTranslator(int code) {
     }
 } 
 
+
+char SymTranslator(std::string code) {
+    if  (code == "Vampire") { return 'V'; }
+    else if  (code == "Werewolf") { return 'W'; }
+    else if  (code == "Goblin") { return 'N'; }
+    else if  (code == "Merchant") { return 'M'; }
+    else if  (code == "Dragon") { return 'D'; }
+    else if  (code == "Phoenix") { return 'X'; }
+    else if  (code == "Troll") { return 'T'; }
+    else if  (code == "Treasure") { return 'G'; }
+    else if  (code == "BarrierSuit") { return 'B'; }
+    else { return ' '; }
+}
+
+
+
+
 // returns a random number between 0 and x-1
 int randomInt(int x, unsigned seed) { 
     std::vector<int> num;
@@ -342,6 +359,10 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
                             }
                         }
                     }
+                    // Debugger
+                    //std::cout << "Treasure neighbour list: " << std::endl;
+                    //print(treasureNeighours);
+
                     Coordinate dragonCdn = treasureNeighours[randomInt(treasureNeighours.size(), ++seed)];
                     delete theGrid[dragonCdn.x][dragonCdn.y];
                     theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
@@ -453,10 +474,25 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
 void Grid::updateGrid() {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == 0) { // NPC state=0 => has not been moved
+            if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == NPC::currInitState) { // NPC state=0 => has not been moved
+
                 NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
 
-                if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) { // if player is within 1 unit, it automatically attacks the player
+                if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
+                    if (theGrid[i][j]->getName() == "Dragon") {
+                        Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j]);
+                        drg->notifyObserver();
+                        // Debugger
+                        std::cout << "The treasure it guards has been unlocked" << std::endl;
+                    }
+                    delete theGrid[i][j];
+                    theGrid[i][j] = new Floor{Coordinate{i, j}};
+                    setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
+                    td->notify(*this);
+                    continue;
+                }
+
+                else if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) { // If player is within 1 unit, it automatically attacks the player
                     if (theGrid[i][j]->getName() == "Merchant" && Merchant::hatred == 0) { // if this NPC is a merchant and PC hasn't attacked a merchant on this floor, then it does not attack PC
                         continue;
                     }
@@ -464,7 +500,15 @@ void Grid::updateGrid() {
                     int dmg = theGrid[i][j]->attack(def);
                     theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
                     n->setMoved();
-                } else { // else move one block
+                } 
+                                
+                
+                else { // else move one block
+                    if (theGrid[i][j]->getName() == "Dragon") {
+                        n->setMoved();
+                        continue;
+                    } // Dragons do not move
+
                     std::vector<Coordinate> v;
                     for (int m = -1; m <= 1; m++) {
                         for (int n = -1; n <= 1; n++) {
@@ -480,7 +524,11 @@ void Grid::updateGrid() {
                             delete theGrid[v[k].x][v[k].y];
                             theGrid[v[k].x][v[k].y] = theGrid[i][j];
                             theGrid[v[k].x][v[k].y]->setCdn(v[k]);
+                            setState(std::pair<Coordinate, char>{v[k], SymTranslator(theGrid[v[k].x][v[k].y]->getName())});
+                            td->notify(*this);
                             theGrid[i][j] = new Floor{Coordinate{i, j}};
+                            setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
+                            td->notify(*this);
                             n->setMoved();
                             break;
                         }
@@ -489,21 +537,10 @@ void Grid::updateGrid() {
             }
         }
     }
+    NPC::currInitState = 1 - NPC::currInitState;
 }
 
-/*
-bool Grid::canMoveToNPC(Coordinate cdn) {
-    std::string name = theGrid[cdn.x][cdn.y]->getName();
-    if (name == "Floor") {
-        return true;
-    }
-    // 代码已作废：原因：如果move to一个stair所在的格上，就会delete当前的stair
-    if (name == "Stair") {
-        return !theGrid[cdn.x][cdn.y]->state(); // 如果目前玩家已经拿到了compass (i.e.: stair revealed = true), 则NPC不可以踩在stair上；如果not revealed，就可以当成普通floor随便踩
-    }
-    return false;
-}
-*/
+
 
 bool Grid::canMoveTo(Coordinate cdn) { // for PC
     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
@@ -525,8 +562,8 @@ bool Grid::canMoveTo(Coordinate cdn) { // for PC
 
 bool Grid::moveTo(Coordinate newCdn) { // for PC
     // Debugger
-    std::cout << PCLocation << std::endl;
-    std::cout << newCdn << std::endl;
+    std::cout << "PC Location: " << PCLocation << std::endl;
+    std::cout << "Target Cdn:" << newCdn << std::endl;
 
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
         return true;
@@ -538,7 +575,11 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     }
     if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
         int code = theGrid[newCdn.x][newCdn.y]->state();
+        std::cout << "code: " << code << std::endl;
         PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+
+
+        
         p->applyEffect(code);
     }
     delete theGrid[newCdn.x][newCdn.y];
@@ -614,10 +655,12 @@ void Grid::PCAttack(Coordinate cdn) {
         int def = theGrid[cdn.x][cdn.y]->getDefence();
         int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
         theGrid[cdn.x][cdn.y]->attacked(dmg);
+        /*
         if (theGrid[cdn.x][cdn.y]->getHP() <= 0) {
             delete theGrid[cdn.x][cdn.y];
             theGrid[cdn.x][cdn.y] = new Floor{cdn};
         }
+        */
     } else {
         throw std::runtime_error("There is no NPC at the position you are attacking.");
     }

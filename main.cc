@@ -126,6 +126,7 @@ int main(int argc, char* argv[]) {
 						g = new Grid{argv[1], ++seed, pc, false};
 					}
 				}
+				g->updateGrid();
 				g->printState(currFloor);
 				continue;
 			} catch (runtime_error& errorMsg) {
@@ -144,6 +145,7 @@ int main(int argc, char* argv[]) {
 				std::cout << direction << std::endl;
 
 				g->usePotion(destination);
+				g->updateGrid();
 				g->printState(currFloor);
 				continue;
 			} catch (runtime_error& errorMsg) {
@@ -160,6 +162,9 @@ int main(int argc, char* argv[]) {
 				}
 				Coordinate destination = convertCdn(g->getPCLocation(), dir);
 				g->PCAttack(destination);
+				g->updateGrid();
+				g->printState(currFloor);
+				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
