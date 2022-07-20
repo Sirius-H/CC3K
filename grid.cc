@@ -310,7 +310,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     #endif
 
 
-        // Step 5: Gold
+    // Step 5: Gold
 	int goldPileNum = 10; // Normal Mode
 	if (gameDiffLevel == 0) { // Easy Mode
 		goldPileNum = 15;
@@ -328,9 +328,9 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
         std::shuffle(goldChamber.begin(), goldChamber.end(), std::default_random_engine{seed});
 		for (size_t i = 0; i < goldChamber.size(); i++) {
 			if (theGrid[goldChamber[i].x][goldChamber[i].y]->getName() == "Floor") {
-                int x3 = goldChamber[i].x;
-                int y3 = goldChamber[i].y;
-                delete theGrid[x3][y3];
+                int x4 = goldChamber[i].x;
+                int y4 = goldChamber[i].y;
+                delete theGrid[x4][y4];
                 int ri = randomInt(8, ++seed);
                 int treasure = 0;
                 if (ri <= 4) {
@@ -341,7 +341,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
                     treasure = 7;
                 }
                 Treasure* trs = new Treasure{goldChamber[i], treasure};
-                theGrid[x3][y3] = trs;
+                theGrid[x4][y4] = trs;
                 // Debugger
                 #ifdef SHOWTREASURE
                 std::cout << "Generating treasure:  Coordinate: " << goldChamber[i] << "  Treasure code: " << treasure << std::endl;
@@ -354,8 +354,8 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
                     std::vector<Coordinate> treasureNeighours;
                     for (int m = -1; m <= 1; m++) {
                         for (int n = -1; n <= 1; n++) {
-                            if (theGrid[x3 + m][y3 + n]->getName() == "Floor") {
-                                treasureNeighours.emplace_back(Coordinate{x3 + m, y3 + n});
+                            if (theGrid[x4 + m][y4 + n]->getName() == "Floor") {
+                                treasureNeighours.emplace_back(Coordinate{x4 + m, y4 + n});
                             }
                         }
                     }
@@ -387,11 +387,11 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
             std::vector<Coordinate> bsChamber = chambers[num[0]];
             std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(temp_seed));
-            int x4 = bsChamber[0].x;
-            int y4 = bsChamber[0].y;
-            if (theGrid[x4][y4]->getName() == "Floor") {
-                delete theGrid[x4][y4];
-                theGrid[x4][y4] = new BarrierSuit{bsChamber[0]};
+            int x5 = bsChamber[0].x;
+            int y5 = bsChamber[0].y;
+            if (theGrid[x5][y5]->getName() == "Floor") {
+                delete theGrid[x5][y5];
+                theGrid[x5][y5] = new BarrierSuit{bsChamber[0]};
                 bsChamber.clear();
                 break;
             }
