@@ -69,10 +69,11 @@ std::string PC::getType() const { return "PC"; }
 int PC::state() { return moved; }
 
 int PC::getHP() const { return HP; }
-int PC::getAtk() const { return Atk; }
-int PC::getDef() const { return Def; }
-bool PC::getWithBarrierSuit() const {return withBarrierSuit; }
-static void Grid::resetCoin() {
-    coin = 0;
-    totalCoin = 0;
+int PC::getAtk() const { return Atk + potionAtkEffect; }
+int PC::getDef() const { return Def + pottionDefEffect; }
+bool PC::getWithBarrierSuit() const { return withBarrierSuit; }
+
+void PC::resetCoin() {
+    PC::coin = 0;
+    PC::totalCoin = 0;
 }

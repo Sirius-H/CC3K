@@ -23,6 +23,9 @@ void Cell::setCdn(Coordinate c) {
     cdn = c;
 }
 
+int Cell::getHP() const {
+    return -1;
+}
 
 // Destructor
 Cell::~Cell() { };

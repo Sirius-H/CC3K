@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <iomanip>
 #include <stdexcept>
 #include "coordinate.h"
 #include "termcodes.h"
@@ -45,6 +46,37 @@ void print(std::vector<int> const &v) {
     for (int i : v) std::cout << i << std::endl;
 }
 
+// Helper
+std::string codeTranslator(int code) {
+    if (code == 0) {
+        return "Restore Health";
+    } else if (code == 1) {
+        return "Boost Attack + 5";
+    } else if (code == 2) {
+        return "Boost Defence + 5";
+    } else if (code == 3) {
+        return "Poison Health";
+    } else if (code == 4) {
+        return "Wound Attach";
+    } else if (code == 5) {
+        return "Wound Defence";
+    } else if (code == 6) {
+        return "Treasure: Normal gold pile";
+    } else if (code == 7) {
+        return "Treasure: Small horde";
+    } else if (code == 8) {
+        return "Treasure: Merchant horde";
+    } else if (code == 9) {
+        return "Treasure: Dragon horde";
+    } else if (code == 10) {
+        return "Barrier Suit";
+    } else if (code == 11) {
+        return "Compass";
+    } else {
+        return "";
+    }
+} 
+
 // returns a random number between 0 and x-1
 int randomInt(int x, unsigned seed) { 
     std::vector<int> num;
@@ -58,7 +90,7 @@ int randomInt(int x, unsigned seed) {
 }
 
 
-Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit, int coinVal): seed{seed}, coinVal{coinVal} {
+Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
 	gameDiffLevel = 1; // default: normal difficulty level
 	#ifdef EASYMODE
 	gameDiffLevel = 0;
@@ -187,7 +219,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit, i
         std::cout << "Orc PC created successfully" << std::endl;
         #endif
     }
-	PC* pc = dynamic_cast<PC*>(theGrid[x1][y1]);
     PCLocation = PCchamber[0];
 
     // Debugger
@@ -324,7 +355,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit, i
         goldChamber.clear();
     }
     // Debugger
-    #ifdef SHOWTREASURE~
+    #ifdef SHOWTREASURE
     std::cout << *td;
     std::cout << ">>> Treasure generated" << std::endl;
     #endif
@@ -493,6 +524,10 @@ bool Grid::canMoveTo(Coordinate cdn) { // for PC
 
 
 bool Grid::moveTo(Coordinate newCdn) { // for PC
+    // Debugger
+    std::cout << PCLocation << std::endl;
+    std::cout << newCdn << std::endl;
+
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
         return true;
     }
@@ -508,7 +543,12 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     }
     delete theGrid[newCdn.x][newCdn.y];
     theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
+    theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
+    setState(std::pair<Coordinate,char>{newCdn, '@'});
+    td->notify(*this);
     theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+    setState(std::pair<Coordinate,char>{PCLocation, '.'});
+    td->notify(*this);
     PCLocation = newCdn;
 
     // auto attack to surrounding NPC
@@ -521,7 +561,7 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         catch (std::runtime_error& errorMsg) {
             std::cout << errorMsg.what() << std::endl;
         }
-    } else if (v.size() > 0) {
+    } else if (v.size() > 1) {
         std::cout << "More than 1 enermy around, please choose one to attack, or press 's' to skip (i.e.: do not attack)" << std::endl;
         for (size_t i = 0; i < v.size(); i++) {
             std::cout << YELLOW <<  "(" << i << "): " << RESET << "Coordinate: " << v[i] << "  " << theGrid[v[i].x][v[i].y]->getName() << std::endl;
@@ -553,8 +593,6 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
             return false;
         }
         return false;
-    } else {
-        return false;
     }
     return false;
 }
@@ -576,6 +614,10 @@ void Grid::PCAttack(Coordinate cdn) {
         int def = theGrid[cdn.x][cdn.y]->getDefence();
         int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
         theGrid[cdn.x][cdn.y]->attacked(dmg);
+        if (theGrid[cdn.x][cdn.y]->getHP() <= 0) {
+            delete theGrid[cdn.x][cdn.y];
+            theGrid[cdn.x][cdn.y] = new Floor{cdn};
+        }
     } else {
         throw std::runtime_error("There is no NPC at the position you are attacking.");
     }
@@ -584,7 +626,7 @@ void Grid::PCAttack(Coordinate cdn) {
 
 
 void Grid::usePotion(Coordinate cdn) {
-    if (theGrid[cdn.x][cdn.y]->getType() == "Potion") {
+    if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i == 0 && j == 0) {
@@ -595,6 +637,10 @@ void Grid::usePotion(Coordinate cdn) {
                     p->applyEffect(code);
                     delete theGrid[cdn.x][cdn.y];
                     theGrid[cdn.x][cdn.y] = new Floor{cdn};
+                    setState(std::pair<Coordinate,char>{cdn, '.'});
+                    td->notify(*this);
+                    std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
+                    std::cout << RED << "Effect: " << codeTranslator(code) << RESET << std::endl;
                     break;
                 }
             }
@@ -604,19 +650,23 @@ void Grid::usePotion(Coordinate cdn) {
     }
 }
 
-void Grid::printState() {
+void Grid::printState(int floorNum) const {
+    std::cout << *td;
     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-    std::cout << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
-    std::cout << GREEN << p->getHP() << "HP  " << RED << p->getAtk() << "Atk  " << BLUE << p->getDef() << "Def  ";
+    std::cout << "Coin: " << std::setprecision(3) << PC::coin << "                              Floor" << floorNum << std::endl;
+    std::cout << YELLOW << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << std::endl;
+    std::cout << "Barrier Suit Status:   ";
     if (p->getWithBarrierSuit()) {
-        std::cout << MAGENTA << "BS";
+        std::cout << "ACQUIRED" << RESET;
+    } else {
+        std::cout << "NOT ACQUIRED" << RESET;
     }
     std::cout << std::endl;
     for (int i = -2; i <= 2; i++) {
         for (int j = -2; j <= 2; j++) {
             if (theGrid[PCLocation.x + i][PCLocation.y + j]->getType() == "NPC") {
                 NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j]);
-                std::cout << "NPC (" << PCLocation.x + i << "," << PCLocation.y + i << "): " << GREEN << n->getHP() << "HP  " << RED << n->getAtk() << "Atk  " << BLUE << n->getDef() << "Def"<< std::endl;
+                std::cout << "NPC (" << PCLocation.x + i << "," << PCLocation.y + i << "): " << RED << n->getHP() << "HP  "  << n->getAtk() << "Atk  "  << n->getDef() << "Def"<< RESET << std::endl;
             }
         }
     }

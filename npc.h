@@ -17,7 +17,7 @@ public:
     std::string getType() const override;
     int state() override;
     void setMoved();
-    int getHP() const;
+    int getHP() const override;
     int getAtk() const;
     int getDef() const;
 };

@@ -27,7 +27,7 @@ class Grid: public Subject {
 	// 2: hard mode (less gold, NPC 1.5X Atk) (to be implemented)
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
 public:
-    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false, int coinVal = 0);
+    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
     void init(char c);
     Coordinate& getPCLocation();
     void updatePlayer();
@@ -37,7 +37,7 @@ public:
     bool moveTo(Coordinate newCdn);
     void usePotion(Coordinate cdn);
     void PCAttack(Coordinate cdn);
-    void printState();
+    void printState(int floorNum) const;
     ~Grid();
 };
 

@@ -4,19 +4,22 @@
 #include <string>
 #include <stdexcept>
 #include <chrono>
+#include <algorithm>
+#include <random>
 #include "grid.h"
 #include "termcodes.h"
+#include "pc.h"
 using namespace std;
 
 Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
      if (direction == "no") {
-        return Coordinate{oldCdn.x, oldCdn.y - 1};
-     } else if (direction == "so") {
-        return Coordinate{oldCdn.x, oldCdn.y + 1};
-     } else if (direction == "ea") {
         return Coordinate{oldCdn.x - 1, oldCdn.y};
-     } else if (direction == "we") {
+     } else if (direction == "so") {
         return Coordinate{oldCdn.x + 1, oldCdn.y};
+     } else if (direction == "ea") {
+        return Coordinate{oldCdn.x, oldCdn.y + 1};
+     } else if (direction == "we") {
+        return Coordinate{oldCdn.x, oldCdn.y - 1};
      } else if (direction == "ne") {
         return Coordinate{oldCdn.x - 1, oldCdn.y + 1};
      } else if (direction == "nw") {
@@ -26,6 +29,8 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
      } else if (direction == "sw") {
         return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
      } else {
+		// Debugger
+		std::cout << "Wrong direction!" << std::endl;
         return oldCdn;
      }
 }
@@ -42,7 +47,9 @@ void printIntroMsg() {
 }
 
 
+
 int main(int argc, char* argv[]) {
+	// Print out welcome message
     std::cout << "WELCOME TO THE GAME OF CHAMBERCRAWLER3000+!" << std::endl;
     printIntroMsg();
     char pc;
@@ -54,29 +61,42 @@ int main(int argc, char* argv[]) {
 			std::cout << "Invalid input, please input the correct character" << std::endl;
 		}
 	}
-	Grid* g;
-	unsigned defaultSeed = std::chrono::system_clock::now().time_since_epoch().count();
+
+	// Set up seed
+	unsigned seed;
 	if (argc == 3) {
 		string s = argv[2];
 		istringstream iss{s};
-		unsigned seed;
 		iss >> seed;
-		g = new Grid{argv[1], seed, pc};
-	
-	} else if (argc == 2) {
-		g = new Grid{argv[1], defaultSeed, pc};
-	} else {
-		g = new Grid{"defaultFloor.txt", defaultSeed, pc};
+	} else { // if not specified, use random seed
+		seed = std::chrono::system_clock::now().time_since_epoch().count();
 	}
-	int currFloor = 1;
+
+	int currFloor = 1; // Current floor number
 	std::vector<int> n;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 1; i <= 5; i++) {
 		n.emplace_back(i + 1);
 	}
-	std::shuffle(n.begin(), n.end(), std::default_random_engine{defaultSeed});
+	std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
 	int barrierFloor = n[0];
 	n.clear();
 
+	// Create new Grid object (game)
+	Grid* g;
+	if (argc == 3 || argc == 2) {
+		if (currFloor == barrierFloor) {
+			g = new Grid{argv[1], seed, pc, true};
+		} else {
+			g = new Grid{argv[1], seed, pc, false};
+		}
+	} else {
+		if (currFloor == barrierFloor) {
+			g = new Grid{"defaultFloor.txt", seed, pc, true};
+		} else {
+			g = new Grid{"defaultFloor.txt", seed, pc, false};
+		}
+	}
+	g->printState(currFloor);
 		
 	// Game starts
 	char cmd;
@@ -87,34 +107,45 @@ int main(int argc, char* argv[]) {
 				string direction = "";
 				direction += cmd;
 				cin >> cmd;
-				if (cin.fail()) throw "Incorrect direction format!";
+				if (cin.fail()) throw runtime_error("Incorrect direction format!");
 				direction += cmd;
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
 				if (g->moveTo(destination)) {
+					// Debugger
+					std::cout << "Triggered going down stairs" << std::endl;
+
 					if (currFloor == 5) {
 						cout << "You Win! Your Score is: " << PC::totalCoin << endl;
-						return;
+						break;
 					}
 					currFloor += 1;
-					double c = PC::coin;
 					delete g;
 					if (currFloor == barrierFloor) {
-						g = new Grid{argv[1], ++defaultSeed, pc, true, c};
+						g = new Grid{argv[1], ++seed, pc, true};
 					} else {
-						g = new Grid{argv[1], ++defaultSeed, pc, false, c};
+						g = new Grid{argv[1], ++seed, pc, false};
 					}
 				}
-			} catch (string& errorMsg) {
-				cout << errorMsg << endl;
+				g->printState(currFloor);
+				continue;
+			} catch (runtime_error& errorMsg) {
+				cout << errorMsg.what() << endl;
 				continue;
 			}
 		} else if (cmd == 'u') {
 			try{
 				string direction;
 				cin >> direction;
-				if (cin.fail()) throw "Incorrect direction format!";
+				if (cin.fail()) throw runtime_error("Incorrect direction format!");
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
+				// Debugger
+				std::cout << "Current PC Location: " << g->getPCLocation() << std::endl;
+				std::cout << "Accessing cdn: " << destination << std::endl;
+				std::cout << direction << std::endl;
+
 				g->usePotion(destination);
+				g->printState(currFloor);
+				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
@@ -122,22 +153,35 @@ int main(int argc, char* argv[]) {
 
 		} else if (cmd == 'a') {
 			try{
-				string direction;
-				cin >> direction;
-				if (cin.fail()) throw "Incorrect direction format!";
-				Coordinate destination = convertCdn(g->getPCLocation(), direction);
+				string dir;
+				cin >> dir;
+				if (cin.fail() || (dir != "no" && dir != "so" && dir != "we" && dir != "ea" && dir != "nw" && dir != "ne" && dir != "sw" && dir != "se")) {
+					throw runtime_error("Incorrect direction format!");
+				}
+				Coordinate destination = convertCdn(g->getPCLocation(), dir);
 				g->PCAttack(destination);
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
 			}
+
 		} else if (cmd == 'q') {
 			cout << "DEFEATED! (Player quits the game)" << endl;
 			break;
+
+
 		} else if (cmd == 'r') {
+			currFloor = 1;
+			int currFloor = 1; // Current floor number
+			std::vector<int> n;
+			for (int i = 1; i <= 5; i++) {
+				n.emplace_back(i + 1);
+			}
+			std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+			int barrierFloor = n[0];
+			n.clear();
 			delete g;
 			printIntroMsg();
-
 			// Player character reselection
 			while (cin >> pc) {
 				if (pc == 'h' || pc == 'd' || pc == 'e' || pc == 'o') {
@@ -146,33 +190,35 @@ int main(int argc, char* argv[]) {
 					std::cout << "Invalid input, please input the correct character" << std::endl;
 				}
 			}
-			unsigned defaultSeed = std::chrono::system_clock::now().time_since_epoch().count();
+			// Reassign/regenerate seed
 			if (argc == 3) {
 				string s = argv[2];
 				istringstream iss{s};
-				unsigned seed;
 				iss >> seed;
-				g = new Grid{argv[1], seed, pc};
-	
-			} else if (argc == 2) {
-				g = new Grid{argv[1], defaultSeed, pc};
+			} else { // if not specified, use random seed
+				seed = std::chrono::system_clock::now().time_since_epoch().count();
+			}
+			if (argc == 3 || argc == 2) {
+				if (currFloor == barrierFloor) {
+					g = new Grid{argv[1], seed, pc, true};
+				} else {
+					g = new Grid{argv[1], seed, pc, false};
+				}
 			} else {
-				g = new Grid{"defaultFloor.txt", defaultSeed, pc};
+				if (currFloor == barrierFloor) {
+					g = new Grid{"defaultFloor.txt", seed, pc, true};
+				} else {
+					g = new Grid{"defaultFloor.txt", seed, pc, false};
+				}
 			}
-			int currFloor = 1;
-			std::vector<int> n;
-			for (int i = 0; i < 4; i++) {
-				n.emplace_back(i + 1);
-			}
-			std::shuffle(n.begin(), n.end(), std::default_random_engine{defaultSeed});
-			int barrierFloor = n[0];
-			n.clear();
+			g->printState(currFloor);
 			continue;
-        }   
+        } else {
+			std::cout << "Invalid command, please try again!" << std::endl;
+			continue;
+		}
         delete g;
         return 0;
-    } catch ( ... ) {
-        return 1;
     }
 }
 

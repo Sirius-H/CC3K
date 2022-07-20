@@ -24,6 +24,6 @@ int NPC::state() { return moved; }
 
 void NPC::setMoved() { moved = 1; }
 
-int PC::getHP() const { return HP; }
-int PC::getAtk() const { return Atk; }
-int PC::getDef() const { return Def; }
+int NPC::getHP() const { return HP; }
+int NPC::getAtk() const { return Atk; }
+int NPC::getDef() const { return Def; }
