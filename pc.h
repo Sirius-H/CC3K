@@ -11,12 +11,13 @@ protected:
     int Def;
     bool withCompass = false;
     bool withBarrierSuit = false;
-    double coin = 0;
     int potionAtkEffect = 0;
     int pottionDefEffect = 0;
     int moved = 0;
 public:
-    PC(Coordinate cdn, double coin = 0, bool withCompass = false, bool withBarrierSuit = false);
+    static double coin;
+    static double totalCoin;
+    PC(Coordinate cdn, bool withCompass = false, bool withBarrierSuit = false);
     int getDefence() const override;
     virtual int attack(int NPCDefence) const;
     virtual int attacked(int dmg);
@@ -27,8 +28,6 @@ public:
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;
-    double getCoin() const;
-	void setCoin(double coin);
 };
 
 #endif

@@ -1,7 +1,10 @@
 #include <math.h>
 #include "pc.h"
 
-PC::PC(Coordinate cdn, bool coin, bool withCompass, bool withBarrierSuit): Cell{cdn}, coin{coin}, withCompass{withCompass}, withBarrierSuit{withBarrierSuit} {}
+double PC::coin = 0;
+double PC::totalCoin = 0;
+
+PC::PC(Coordinate cdn, bool withCompass, bool withBarrierSuit): Cell{cdn}, withCompass{withCompass}, withBarrierSuit{withBarrierSuit} {}
 
 int PC::getDefence() const { return Def; }
 
@@ -44,16 +47,16 @@ void PC::applyEffect(int effect) {
         pottionDefEffect -= 5;
     } else if (effect == 6) { // Normal gold pile
         coin += 1;
-        Grid::totalCoin += 1;
+        totalCoin += 1;
     } else if (effect == 7) { // Small Horde
         coin += 2;
-        Grid::totalCoin += 2;
+        totalCoin += 2;
     } else if (effect == 8) { // Merchant Hoard
         coin += 4;
-        Grid::totalCoin += 4;
+        totalCoin += 4;
     } else if (effect == 9) { // Dragon Hoard
         coin += 6;
-        Grid::totalCoin += 6;
+        totalCoin += 6;
     } else if (effect == 10) { // Barrier Suit acquired
         withBarrierSuit = true;
     } else if (effect == 11) { // Compass acquired
@@ -69,6 +72,3 @@ int PC::getHP() const { return HP; }
 int PC::getAtk() const { return Atk; }
 int PC::getDef() const { return Def; }
 bool PC::getWithBarrierSuit() const {return withBarrierSuit; }
-double PC::getCoin() const { return coin; }
-void PC::setCoin(double c) { coin = c; }
-

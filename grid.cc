@@ -35,8 +35,6 @@
 #include "goblin.h"
 #include "phoenix.h"
 
-Grid::totalCoin = 0;
-
 // Debugger
 void print( std::vector<Coordinate> const &v ) {
 	for ( Coordinate i : v ) std::cout << i << std::endl;
@@ -189,8 +187,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit, i
         std::cout << "Orc PC created successfully" << std::endl;
         #endif
     }
-	PC* pc = dynamic_cast<PC*>theGrid[x1][y1];
-	pc->setCoin(coinVal);
+	PC* pc = dynamic_cast<PC*>(theGrid[x1][y1]);
     PCLocation = PCchamber[0];
 
     // Debugger
@@ -594,7 +591,8 @@ void Grid::usePotion(Coordinate cdn) {
                     continue;
                 } else if (cdn.x + i == PCLocation.x && cdn.y + j == PCLocation.y) {
                     int code = theGrid[cdn.x][cdn.y]->state();
-                    theGrid[PCLocation.x][PCLocation.y]->applyEffect(code);
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+                    p->applyEffect(code);
                     delete theGrid[cdn.x][cdn.y];
                     theGrid[cdn.x][cdn.y] = new Floor{cdn};
                     break;
@@ -608,7 +606,7 @@ void Grid::usePotion(Coordinate cdn) {
 
 void Grid::printState() {
     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-    std::cout << "Coin: " << setprecision(3) << p->getCoin() << std::endl;
+    std::cout << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
     std::cout << GREEN << p->getHP() << "HP  " << RED << p->getAtk() << "Atk  " << BLUE << p->getDef() << "Def  ";
     if (p->getWithBarrierSuit()) {
         std::cout << MAGENTA << "BS";
@@ -624,7 +622,3 @@ void Grid::printState() {
     }
 }
 
-double getCoin() const {
-    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-    return p->getCoin();
-}
