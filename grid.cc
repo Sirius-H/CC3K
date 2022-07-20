@@ -405,7 +405,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 
 
 
-    //stairChamber.clear();
+    stairChamber.clear();
     PCchamber.clear();
     num.clear();
 }
