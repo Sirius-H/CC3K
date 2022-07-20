@@ -15,6 +15,7 @@ protected:
     int pottionDefEffect = 0;
     int moved = 0;
 public:
+    static int onTile; // -1 if on floor; 1 if on #; 2 if on +
     static double coin;
     static double totalCoin;
     PC(Coordinate cdn, bool withCompass = false, bool withBarrierSuit = false);
@@ -29,6 +30,7 @@ public:
     int getDef() const;
     bool getWithBarrierSuit() const;
     static void resetCoin();
+
 };
 
 #endif

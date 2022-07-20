@@ -15,20 +15,22 @@ protected:
     int pottionDefEffect = 0;
     int moved = 0;
 public:
+    static int onTile; // -1 if on floor; 1 if on #; 2 if on +
     static double coin;
     static double totalCoin;
     PC(Coordinate cdn, bool withCompass = false, bool withBarrierSuit = false);
     int getDefence() const override;
     virtual int attack(int NPCDefence) const;
-    virtual int attacked(int dmg) const;
+    virtual int attacked(int dmg);
     virtual void applyEffect(int effect);
     std::string getType() const override;
     int state() override;
-    int getHP() const;
+    int getHP() const override;
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;
     static void resetCoin();
+
 };
 
 #endif

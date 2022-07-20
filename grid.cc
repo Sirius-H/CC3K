@@ -95,7 +95,7 @@ char SymTranslator(std::string code) {
 
 
 // Returns a random number between 0 and x-1
-int randomInt(int x, unsigned seed) { 
+int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count()) { 
     std::vector<int> num;
     for (int i = 0; i < x; i++) {
         num.emplace_back(i);
@@ -264,6 +264,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             break;
         }
     }
+	
     // Debugger
     #ifdef SHOWSTAIR
     std::cout << *td;
@@ -351,26 +352,33 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
                 td->notify(*this);
                 
                 if (treasure == 9) { // if this is a dragon horde, spawn a dragon next to it
-                    std::vector<Coordinate> treasureNeighours;
+                    std::vector<Coordinate> treasureNeighbours;
                     for (int m = -1; m <= 1; m++) {
                         for (int n = -1; n <= 1; n++) {
                             if (theGrid[x4 + m][y4 + n]->getName() == "Floor") {
-                                treasureNeighours.emplace_back(Coordinate{x4 + m, y4 + n});
+                                treasureNeighbours.emplace_back(Coordinate{x4 + m, y4 + n});
                             }
                         }
                     }
                     // Debugger
                     //std::cout << "Treasure neighbour list: " << std::endl;
-                    //print(treasureNeighours);
+                    //print(treasureNeighbours);
 
-                    Coordinate dragonCdn = treasureNeighours[randomInt(treasureNeighours.size(), ++seed)];
-                    delete theGrid[dragonCdn.x][dragonCdn.y];
-                    theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
-                    treasureNeighours.clear();
-                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
-                    td->notify(*this);
+					if ((int)(treasureNeighbours.size()) == 0) {
+						// Debugger
+						std::cout << "No place to put the dragon, treasure deleted" << std::endl;
+						delete theGrid[x4][y4];
+						theGrid[x4][y4] = new Floor{Coordinate{x4, y4}};
+					} else {
+						Coordinate dragonCdn = treasureNeighbours[randomInt(treasureNeighbours.size(), ++seed)];
+	                    delete theGrid[dragonCdn.x][dragonCdn.y];
+	                    theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
+	                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
+	                    td->notify(*this);
+					}
+					treasureNeighbours.clear();
                 }
-				break;
+			break;
             }
         }
         goldChamber.clear();
@@ -386,7 +394,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
         while (true) {
             std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
             std::vector<Coordinate> bsChamber = chambers[num[0]];
-            std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(temp_seed));
+            std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(++seed));
             int x5 = bsChamber[0].x;
             int y5 = bsChamber[0].y;
             if (theGrid[x5][y5]->getName() == "Floor") {
@@ -406,6 +414,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 
     stairChamber.clear();
     PCchamber.clear();
+	
     num.clear();
 }
 
@@ -558,7 +567,6 @@ bool Grid::canMoveTo(Coordinate cdn) { // for PC
     return false;
 }
 
-
 bool Grid::moveTo(Coordinate newCdn) { // for PC
     // Debugger
     std::cout << "PC Location: " << PCLocation << std::endl;
@@ -578,13 +586,25 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
         p->applyEffect(code);
     }
+    std::string name = theGrid[newCdn.x][newCdn.y]->getName();
+    int state = theGrid[newCdn.x][newCdn.y]->state();
+
     delete theGrid[newCdn.x][newCdn.y];
     theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
     theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
     setState(std::pair<Coordinate,char>{newCdn, '@'});
     td->notify(*this);
-    theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
-    setState(std::pair<Coordinate,char>{PCLocation, '.'});
+    if (PC::onTile == -1) {
+        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+        setState(std::pair<Coordinate,char>{PCLocation, '.'});
+    } else if (PC::onTile == 1) {
+        theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
+        setState(std::pair<Coordinate,char>{PCLocation, '#'});
+    } else if (PC::onTile == 2) {
+        theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
+        setState(std::pair<Coordinate,char>{PCLocation, '+'});
+    }
+    PC::onTile = state;
     td->notify(*this);
     PCLocation = newCdn;
 
@@ -624,13 +644,17 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
             }
         }
         if (opt == 's') {
+            v.clear();
             return false; // skip the selection (do not attack any NPC)
         } else {
+            v.clear();
             PCAttack(v[numOpt]);
             return false;
         }
+        v.clear();
         return false;
     } 
+    v.clear();
     return false;
 }
 
@@ -673,13 +697,18 @@ void Grid::usePotion(Coordinate cdn) {
                 } else if (cdn.x + i == PCLocation.x && cdn.y + j == PCLocation.y) {
                     int code = theGrid[cdn.x][cdn.y]->state();
                     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-                    p->applyEffect(code);
                     delete theGrid[cdn.x][cdn.y];
                     theGrid[cdn.x][cdn.y] = new Floor{cdn};
                     setState(std::pair<Coordinate,char>{cdn, '.'});
                     td->notify(*this);
                     std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
-                    std::cout << RED << "Effect: " << codeTranslator(code) << RESET << std::endl;
+                    try {
+                        p->applyEffect(code);
+                        std::cout << RED << "Effect: " << codeTranslator(code) << RESET << std::endl;
+                    }
+                    catch (std::runtime_error& errorMsg) {
+                        std::cout << RED << "Effect: " << errorMsg.what() << RESET << std::endl;
+                    }
                     break;
                 }
             }

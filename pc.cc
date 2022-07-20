@@ -1,6 +1,7 @@
 #include <math.h>
 #include "pc.h"
 
+int PC::onTile = -1;
 double PC::coin = 0;
 double PC::totalCoin = 0;
 
@@ -31,6 +32,7 @@ void PC::applyEffect(int effect) {
         std::cout << "Found a Restore Health potion" << std::endl;
         if (HP + 10 > maxHP) {
             HP = maxHP;
+            throw std::runtime_error("Exceeding max HP, restore to max HP");
         } else {
             HP += 10;
         }

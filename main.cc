@@ -234,9 +234,9 @@ int main(int argc, char* argv[]) {
 			std::cout << "Invalid command, please try again!" << std::endl;
 			continue;
 		}
-        delete g;
-        return 0;
     }
+	delete g;
+    return 0;
 }
 
 
