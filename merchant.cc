@@ -1,6 +1,8 @@
 #include <math.h>
 #include "merchant.h"
 #include <random>
+#include <chrono>
+#include <algorithm>
 int Merchant::hatred = 0;
 
 Merchant::Merchant(Coordinate cdn): NPC{cdn} {
@@ -53,3 +55,7 @@ int Merchant::attacked(int dmg) {
     return actualDmg;
 }
 
+
+Merchant::~Merchant() {
+    potions.clear();
+}

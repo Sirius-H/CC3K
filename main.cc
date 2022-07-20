@@ -126,6 +126,8 @@ int main(int argc, char* argv[]) {
 					} else {
 						g = new Grid{argv[1], ++seed, pc, false};
 					}
+					g->printState(currFloor);
+					continue;
 				}
 				g->updateGrid();
 				g->printState(currFloor);

@@ -13,6 +13,7 @@ public:
     std::string getName() const override;
     int attack(int PCDefence) const override;
     int attacked(int dmg) override;
+    ~Merchant();
 };
 
 #endif
