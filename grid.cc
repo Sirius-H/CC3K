@@ -270,17 +270,21 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 	}
     for (int i = 0; i < goldPileNum; i++) {
         std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+		// Debugger
         print(num);
 
         std::vector<Coordinate> goldChamber = chambers[num[0]];
         std::shuffle(goldChamber.begin(), goldChamber.end(), std::default_random_engine{seed});
 		for (size_t i = 0; i < goldChamber.size(); i++) {
+			if (theGrid[goldChamber[i].x][theGrid[goldChamber[i].y]]->getName() == "Floor") {
+			/*
             try {
                 canMoveTo(goldChamber[i]);
             } catch (std::runtime_error& msg) {
                 continue;
             }
             if (theGrid[goldChamber[i].x][goldChamber[i].y]->getName() != "Treasure") {
+			*/
                 int x3 = goldChamber[i].x;
                 int y3 = goldChamber[i].y;
                 delete theGrid[x3][y3];
@@ -587,6 +591,6 @@ void Grid::PCAttack(Coordinate cdn) {
 
 
 void Grid::usePotion(Coordinate cdn) {
-
+    
 }
 
