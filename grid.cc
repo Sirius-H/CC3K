@@ -261,7 +261,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             // Debugger
             setState(std::pair<Coordinate, char>{stairChamber[i], '/'});
             td->notify(*this);
-
             break;
         }
     }
@@ -716,6 +715,6 @@ void Grid::buyPotion(string s) {
     if 
 }
 
-void Grid::getHP() {
+int Grid::getHP() {
     return theGrid[PCLocation.x][PCLocation.y]->getHP();
 }

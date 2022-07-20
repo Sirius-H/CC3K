@@ -41,7 +41,7 @@ public:
     void printState(int floorNum) const;
     ~Grid();
     void buyPotion(std::string s);
-    void getHP();
+    int getHP();
 };
 
 #endif
