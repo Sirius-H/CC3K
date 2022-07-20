@@ -19,5 +19,10 @@ int Cell::getDefence() const{
     return 0;
 }
 
+void Cell::setCdn(Coordinate c) {
+    cdn = c;
+}
+
+
 // Destructor
 Cell::~Cell() { };

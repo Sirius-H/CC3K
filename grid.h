@@ -29,14 +29,14 @@ class Grid: public Subject {
 public:
     Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
     void init(char c);
-    Coordinate& getPCLocation() const;
+    Coordinate& getPCLocation();
     void updatePlayer();
     void updateGrid();
-    bool canMoveTo(Coordinate& cdn);
-    bool canMoveToNPC(Coordinate& cdn);
-    bool moveTo(Coordinate& newCdn);
-    void usePotion(Coordinate& cdn);
-    void PCAttack(Coordinate& cdn);
+    bool canMoveTo(Coordinate cdn);
+    bool canMoveToNPC(Coordinate cdn);
+    bool moveTo(Coordinate newCdn);
+    void usePotion(Coordinate cdn);
+    void PCAttack(Coordinate cdn);
     ~Grid();
 
 };

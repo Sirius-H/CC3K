@@ -22,4 +22,4 @@ std::string NPC::getType() const { return "NPC"; }
 
 int NPC::state() { return moved; }
 
-void NPC::setState() { moved = 1; }
+void NPC::setMoved() { moved = 1; }

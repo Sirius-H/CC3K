@@ -25,6 +25,8 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
         return Coordinate{oldCdn.x + 1, oldCdn.y + 1};
      } else if (direction == "sw") {
         return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
+     } else {
+        return oldCdn;
      }
 }
 
@@ -34,16 +36,22 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
 int main(int argc, char* argv[]) {
     std::cout << "WELCOME TO THE GAME OF CHAMBERCRAWLER3000+!" << std::endl;
     std::cout << "Please select your PC character:" << std::endl;
-    std::cout << ">>> Options:" << std::endl;
+    std::cout << "Options:" << std::endl;
     std::cout << "(1) Human" << YELLOW << "(h)" << RESET << ": HP:140  Attack:20  Defence:20" << std::endl;
     std::cout << "(2) Dwarf" << YELLOW << "(d)" << RESET << ": HP:100  Attack:20  Defence:30    <gold X2>" << std::endl;
     std::cout << "(3) Elves" << YELLOW << "(e)" << RESET << ": HP:140  Attack:30  Defence:10    <negative potions have positive effects>" << std::endl;
     std::cout << "(4) Orc  " << YELLOW << "(o)" << RESET << ": HP:180  Attack:30  Defence:25    <gold X0.5>" << std::endl;
-    std::cout << "Please enter 'h', 'd', 'e', or 'o'" << std::endl;
+    std::cout << ">>> Please enter 'h', 'd', 'e', or 'o'" << std::endl;
     char pc;
     try {
         // Player character selection
-        cin >> pc;
+        while (cin >> pc) {
+            if (pc == 'h' || pc == 'd' || pc == 'e' || pc == 'o') {
+                break;
+            } else {
+                std::cout << "Invalid input, please input the correct character" << std::endl;
+            }
+        }
         Grid* g;
         unsigned defaultSeed = std::chrono::system_clock::now().time_since_epoch().count();
         if (argc == 3) {
@@ -60,8 +68,8 @@ int main(int argc, char* argv[]) {
         }
         int currFloor = 1;
 
-
-         // Game starts
+        /* 
+        // Game starts
         char cmd;
         while (cin >> cmd) {
             // Moving Player Character
@@ -106,6 +114,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
+        */
         delete g;
         return 0;
     } catch ( ... ) {

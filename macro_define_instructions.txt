@@ -1,0 +1,12 @@
+CC3K外部定义宏组：
+
+EASYMODE – easy mode: (more gold, NPC 1/2 HP)
+MEDIUMMODE - medium mode: (normal mode)
+HARDMODE - hard mode: (less gold, NPC 1.5X Atk) (to be implemented)
+
+// For demo:
+
+SHOWPC - show the map with only pc generated
+SHOWSTAIR - show the map with pc, stair generated
+SHOWPOTION - show the map with pc, stair, potions (including their location and type) generated
+SHOWTREASURE - show the map with pc, stair, potions and treasures (including their location and type) generated

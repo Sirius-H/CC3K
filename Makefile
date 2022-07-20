@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -MMD -g
+CXXFLAGS = -std=c++14 -Wall -MMD -g -D SHOWTREASURE
 EXEC = cc3k
 SOURCES = $(wildcard *.cc)
 OBJECTS = ${SOURCES:.cc=.o}
