@@ -30,7 +30,7 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
         return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
      } else {
 		// Debugger
-		std::cout << "Wrong direction!" << std::endl;
+		throw runtime_error("Wrong direction!");
         return oldCdn;
      }
 }

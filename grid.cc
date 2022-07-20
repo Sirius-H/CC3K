@@ -577,9 +577,6 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         int code = theGrid[newCdn.x][newCdn.y]->state();
         std::cout << "code: " << code << std::endl;
         PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-
-
-        
         p->applyEffect(code);
     }
     delete theGrid[newCdn.x][newCdn.y];
