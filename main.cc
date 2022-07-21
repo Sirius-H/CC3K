@@ -37,6 +37,7 @@ Coordinate convertCdn(const Coordinate& oldCdn, string direction) {
 }
 */
 
+
 void printIntroMsg() {
 	std::cout << "Please select your PC character:" << std::endl;
     std::cout << "Options:" << std::endl;
@@ -121,11 +122,17 @@ int main(int argc, char* argv[]) {
 					}
 					currFloor += 1;
 					delete g;
+					// Debugger
+					std::cout << "DELETED GRID" << std::endl;
+
 					if (currFloor == barrierFloor) {
 						g = new Grid{argv[1], ++seed, pc, true};
 					} else {
 						g = new Grid{argv[1], ++seed, pc, false};
 					}
+					// Debugger
+					std::cout << "New grid created!" << std::endl;
+
 					g->printState(currFloor);
 					continue;
 				}

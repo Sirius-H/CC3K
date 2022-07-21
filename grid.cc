@@ -412,6 +412,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     std::cout << ">>> Treasure generated" << std::endl;
     #endif
 
+/*
     // Step 6: Barrier Suit
     if (barrierSuit) {
         while (true) {
@@ -429,7 +430,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             bsChamber.clear();
         }
     }
-
+*/
     // Step 7: NPC generation
     
 
