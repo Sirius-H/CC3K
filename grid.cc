@@ -541,8 +541,9 @@ void Grid::updateGrid() {
                 NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
 
                 if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
-                    PC::coin += 1;
-                    PC::totalCoin +=1;
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+                    p->applyElimNPCAward();
+
                     if (theGrid[i][j]->getName() == "Dragon") {
                         Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j]);
                         drg->notifyObserver();

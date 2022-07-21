@@ -7,6 +7,7 @@ public:
     Orc(Coordinate cdn);
     std::string getName() const override;
     void applyEffect(int effect) override;
+    void applyElimNPCAward() override;
 };
 
 #endif

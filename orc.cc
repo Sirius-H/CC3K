@@ -48,3 +48,9 @@ void Orc::applyEffect(int effect) {
         withCompass = true;
     }
 }
+
+void Orc::applyElimNPCAward() {
+    PC::coin += 0.5;
+    PC::totalCoin += 0.5;
+}
+

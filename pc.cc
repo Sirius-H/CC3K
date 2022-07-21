@@ -104,3 +104,9 @@ void PC::resetCoin() {
     PC::coin = 0;
     PC::totalCoin = 0;
 }
+
+void PC::applyElimNPCAward() {
+    PC::coin += 1;
+    PC::totalCoin += 1;
+}
+

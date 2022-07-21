@@ -30,7 +30,7 @@ public:
     int getDef() const;
     bool getWithBarrierSuit() const;
     static void resetCoin();
-
+    virtual void applyElimNPCAward();
 };
 
 #endif

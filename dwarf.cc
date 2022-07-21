@@ -49,6 +49,9 @@ void Dwarf::applyEffect(int effect) {
     }
 }
 
-
+void Dwarf::applyElimNPCAward() {
+    PC::coin += 2;
+    PC::totalCoin += 2;
+}
 
 

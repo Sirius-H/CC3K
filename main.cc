@@ -6,6 +6,7 @@
 #include <chrono>
 #include <algorithm>
 #include <random>
+#include <iomanip>
 #include "grid.h"
 #include "termcodes.h"
 #include "pc.h"
@@ -137,16 +138,7 @@ int main(int argc, char* argv[]) {
 					//std::cout << "New grid created!" << std::endl;
 
 					g->printState(currFloor);
-					continue;
 				}
-				g->updateGrid();
-				g->printState(currFloor);
-                if (g->getHP() == 0) {
-                    cout << RED << "YOU ARE DEFEATED!" << RESET << std::endl;
-					cout << "Total Score: " << PC::totalCoin << endl;
-                    break;
-                }
-				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
@@ -163,13 +155,6 @@ int main(int argc, char* argv[]) {
 				std::cout << direction << std::endl;
 
 				g->usePotion(destination);
-				g->updateGrid();
-				g->printState(currFloor);
-                if (g->getHP() == 0) {
-                    cout << "DEFEATED!" << std::endl;
-                    break;
-                }
-				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
@@ -184,20 +169,14 @@ int main(int argc, char* argv[]) {
 				}
 				Coordinate destination = convertCdn(g->getPCLocation(), dir);
 				g->PCAttack(destination);
-				g->updateGrid();
-				g->printState(currFloor);
-                if (g->getHP() == 0) {
-                    cout << "DEFEATED!" << std::endl;
-                    break;
-                }
-				continue;
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
 				continue;
 			}
 
 		} else if (cmd == 'q') {
-			cout << "DEFEATED! (Player quits the game)" << endl;
+			std::cout << CYAN << "##### " << left << setw(45) << setfill(' ') << "GAME OVER! Defeated! (Player quits the game)" << right << setw(5) << "#####" << std::endl;
+			std::cout << "##### TOTAL SCORE: " << left << setw(32) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
 			break;
 
 
@@ -256,6 +235,16 @@ int main(int argc, char* argv[]) {
 			std::cout << "Invalid command, please try again!" << std::endl;
 			continue;
 		}
+
+		// NPC's round & Grid update
+		g->updateGrid();
+		g->printState(currFloor);
+		if (g->getHP() == 0) {
+			std::cout << CYAN << "##### " << left << setw(22) << setfill(' ') << "GAME OVER! Defeated!" << right << setw(5) << "#####" << std::endl;
+			std::cout << "##### TOTAL SCORE: " << left << setw(9) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
+			break;
+		}
+
     }
 	delete g;
     return 0;
