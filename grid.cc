@@ -454,6 +454,10 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 
 
 
+    
+
+
+
     stairChamber.clear();
     PCchamber.clear();
 	
@@ -644,6 +648,7 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
             setState(std::pair<Coordinate, char>{StairLocation, '\\'});
             td->notify(*this);
+            std::cout << GREEN << "You had the compass, stair revealed >>>" << RESET << std::endl;
         }
     }
     std::string name = theGrid[newCdn.x][newCdn.y]->getName();
