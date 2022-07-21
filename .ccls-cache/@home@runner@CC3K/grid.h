@@ -5,6 +5,7 @@
 #include <fstream>
 #include <map>
 #include <chrono>
+#include <string>
 #include "coordinate.h"
 #include "subject.h"
 
@@ -16,6 +17,7 @@ class Grid: public Subject {
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
     Coordinate PCLocation;
+    Coordinate StairLocation;
     TextDisplay* td;
 	unsigned seed;
 	double coinVal;	
@@ -28,7 +30,8 @@ class Grid: public Subject {
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
 public:
-    Grid(std::string fileName, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
+    Grid(std::vector<std::string>& theFloor, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
+    Grid(std::vector<std::string>& file, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), int level = 1);
     void init(char c);
     Coordinate& getPCLocation();
     void updatePlayer();
@@ -45,3 +48,4 @@ public:
 };
 Coordinate convertCdn(const Coordinate& oldCdn, std::string direction);
 #endif
+

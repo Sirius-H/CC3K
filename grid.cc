@@ -540,6 +540,203 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 }
 
 
+Grid::Grid(std::vector<std::string>& file, unsigned seed, int level) {
+    gameDiffLevel = 1; // default: normal difficulty level
+	#ifdef EASYMODE
+	gameDiffLevel = 0;
+	#endif
+	#ifdef MEDIUMMODE
+	gameDiffLevel = 1;
+	#endif
+	#ifdef HARDMODE
+	gameDiffLevel = 2;
+	#endif
+    int savedFileStartFrom = 0;
+    std::vector<std::vector<Cell*>> tempGrid;
+    // Step 1: create an empty grid of cells, create and connect with TextDisplay
+    int h = file.size();
+    int w = file[0].size();
+    std::vector<Cell*> tempRow1;
+    std::vector<Cell*> tempRow2;
+    for (int i = 0; i < h; i++) {
+        std::string s = file[i];
+        for (int j = 0; j < w; j++) {
+            Coordinate currCdn{i, j};
+            Cell* ptr1;
+            Cell* ptr2;
+            if (s[i] == '|') {
+                ptr1 = new Wall{currCdn, 1};
+                ptr2 = new Wall{currCdn, 1};
+            } else if (s[i] == '-') {
+                ptr1 = new Wall{currCdn, 2};
+                ptr2 = new Wall{currCdn, 2};
+            } else if (s[i] == ' ') {
+                ptr1 = new Wall{currCdn, 3};
+                ptr2 = new Wall{currCdn, 3};
+            } else if (s[i] == '#') {
+                ptr1 = new Passage{currCdn, 1};
+                ptr2 = new Passage{currCdn, 1};
+            } else if (s[i] == '+') {
+                ptr1 = new Passage{currCdn, 2};
+                ptr2 = new Passage{currCdn, 2};
+            } else {
+                ptr1 = new Floor{currCdn};
+                ptr2 = new Floor{currCdn};
+            }
+            tempRow1.emplace_back(ptr1);
+            tempRow2.emplace_back(ptr2);
+        }
+        theGrid.emplace_back(tempRow1);
+        tempGrid.emplace_back(tempRow2);
+        if (file[0] == file[i]) {
+            savedFileStartFrom = i + 1;
+            break;
+        }
+    }
+    td = new TextDisplay{theGrid};
+
+    // Split Chambers
+    int chamberIndex = 0;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (tempGrid[i][j]->getName() == "Floor") {
+                std::vector<Coordinate> tempChamber;
+                addChamber(tempGrid, Coordinate{i,j}, tempChamber);
+                chambers.emplace_back(tempChamber);
+                chamberIndex++;
+            }
+        }
+    }
+
+    int height = tempGrid.size();
+    for (int i = 0; i < height; i++) {
+        int width = tempGrid[i].size();
+        for (int j = 0; j < width; j++) {
+            delete tempGrid[i][j];
+        }
+        tempGrid[i].clear();
+    }
+    tempGrid.clear();
+
+    // Step 2: Generate PC
+    std::istringstream iss;
+
+    for (int i = savedFileStartFrom; i < h; i++) {
+        iss.str(file[i]);
+        int x;
+        int y;
+        char object;
+        iss >> x >> y >> object;
+        Coordinate cdn{x, y};
+        delete theGrid.at(x).at(y);
+        if (object == '@') {
+            int race;
+            iss >> race;
+            if (race == 0) {
+                theGrid[x][y] = new Human{cdn};
+                #ifdef SHOWPC
+                std::cout << "Human PC created successfully" << std::endl;
+                #endif
+            } else if (race == 1) {
+                theGrid[x][y] = new Dwarf{cdn};
+                #ifdef SHOWPC
+                std::cout << "Dwarf PC created successfully" << std::endl;
+                #endif
+            } else if (race == 2) {
+                theGrid[x][y] = new Elf{cdn};
+                #ifdef SHOWPC
+                std::cout << "Elf PC created successfully" << std::endl;
+                #endif
+            } else if (race == 3) {
+                theGrid[x][y] = new Orc{cdn};
+                #ifdef SHOWPC
+                std::cout << "Orc PC created successfully" << std::endl;
+                #endif
+            }
+            PCLocation = cdn;
+            setState(std::pair<Coordinate, char>{cdn, '@'});
+            #ifdef SHOWPC
+            std::cout << *td;
+            std::cout << "PC generated successfully" << std::endl << std::endl;
+            #endif
+        } else if (object == 'S') {
+            theGrid[x][y] = new Stair{cdn};
+            StairLocation = cdn;
+            setState(std::pair<Coordinate, char>{cdn, '\\'});
+        } else if (object == 'P') {
+            int effect;
+            iss >> effect;
+            theGrid[x][y] = new Potion{cdn, effect};
+            setState(std::pair<Coordinate, char>{cdn, 'P'});
+        } else if (object == 'T') {
+            int size;
+            iss >> size;
+            Treasure *trs = new Treasure{cdn, size};
+            theGrid[x][y] = trs;
+            setState(std::pair<Coordinate, char>{cdn, 'G'});
+            if (size == 9) {
+                i++;
+                iss.str(file[i]);
+                iss >> x >> y;
+                delete theGrid[x][y];
+                theGrid[x][y] = new Dragon{Coordinate{x,y}, trs};
+                setState(std::pair<Coordinate, char>{Coordinate{x,y}, 'D'});
+            }
+        } else if (object == 'B') {
+            BarrierSuit *bs = new BarrierSuit{cdn};
+            setState(std::pair<Coordinate, char>{cdn, 'B'});
+            i++;
+            iss.str(file[i]);
+            iss >> x >> y;
+            delete theGrid[x][y];
+            theGrid[x][y] = new Dragon{Coordinate{x,y}, bs};                setState(std::pair<Coordinate, char>{Coordinate{x,y}, 'D'});
+        } else if (object == 'W') {
+            int withCompass;
+            iss >> withCompass;
+            Werewolf *n = new Werewolf{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'W'});
+        } else if (object == 'T') {
+            int withCompass;
+            iss >> withCompass;
+            Troll *n = new Troll{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'T'});
+        } else if (object == 'N') {
+            int withCompass;
+            iss >> withCompass;
+            Goblin *n = new Goblin{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'N'});
+        } else if (object == 'X') {
+            int withCompass;
+            iss >> withCompass;
+            Phoenix *n = new Phoenix{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'X'});
+        } else if (object == 'V') {
+            int withCompass;
+            iss >> withCompass;
+            Vampire *n = new Vampire{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'V'});
+        } else if (object == 'M') {
+            int withCompass;
+            iss >> withCompass;
+            Merchant *n = new Merchant{cdn};
+            n->setWithCompass(withCompass);
+            theGrid[x][y] = n;
+            setState(std::pair<Coordinate, char>{cdn, 'M'});
+        }
+        td->notify(*this);
+    }
+
+}
 
 Coordinate& Grid::getPCLocation() {
     return PCLocation;
