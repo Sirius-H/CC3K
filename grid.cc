@@ -1,3 +1,4 @@
+TESTING
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -450,7 +451,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     }
 
     // Step 7: NPC generation
-    
+
 
 
 
