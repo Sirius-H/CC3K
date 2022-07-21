@@ -35,3 +35,7 @@ void NPC::setMoved() {
 int NPC::getHP() const { return HP; }
 int NPC::getAtk() const { return Atk; }
 int NPC::getDef() const { return Def; }
+
+void NPC::setWithCompass(bool b) {
+    withCompass = b;
+}

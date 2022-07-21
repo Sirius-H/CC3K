@@ -21,6 +21,7 @@ public:
     int getHP() const override;
     int getAtk() const;
     int getDef() const;
+    void setWithCompass(bool b);
 };
 
 #endif

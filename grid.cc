@@ -134,6 +134,7 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
 // Constructor (init the game)
 Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
 	gameDiffLevel = 1; // default: normal difficulty level
+    int totalNPC = 20;
 	#ifdef EASYMODE
 	gameDiffLevel = 0;
 	#endif
@@ -342,7 +343,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 	}
     // Debugger
     #ifdef SHOWTREASURE
-    std::cout << "### Potion effect code:  6-Normal gold pile;  7-Small horde;  8-Merchant horde;  9-Dragon horde" << std::endl << std::endl;
+    std::cout << "### Treasure code:  6-Normal gold pile;  7-Small horde;  8-Merchant horde;  9-Dragon horde" << std::endl << std::endl;
     #endif
     for (int i = 0; i < goldPileNum; i++) {
         std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
@@ -397,6 +398,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 	                    theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
 	                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
 	                    td->notify(*this);
+                        totalNPC--;
 					}
 					treasureNeighbours.clear();
                 }
@@ -445,16 +447,86 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             setState(std::pair<Coordinate, char>{bsNeighbours[0], 'D'});
             td->notify(*this);
             bsNeighbours.clear();
+            totalNPC--;
             break;
         }
     }
 
     // Step 7: NPC generation
-
-
-
-
-    
+    int compassCarrierIndex = randomInt(totalNPC, ++seed);
+    bool withCompass = false;
+    #ifdef SHOWNPC
+    std::cout << "### NPC code:  W(werewolf);  V(vampire);  N(Goblin);  T(troll);  X(phoenix);  M(merchant)" << std::endl << std::endl;
+    char type;
+    #endif
+    for (int i = 0; i < totalNPC; i++) {
+        std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+        std::vector<Coordinate> npcChamber = chambers[num[0]];
+        std::shuffle(npcChamber.begin(), npcChamber.end(), std::default_random_engine{seed});
+        if (i == compassCarrierIndex) {
+            withCompass = true;
+        } else {
+            withCompass = false;
+        }
+        for (size_t i = 0; i < npcChamber.size(); i++) {
+            if (theGrid[npcChamber[i].x][npcChamber[i].y]->getName() == "Floor") {
+                int x5 = npcChamber[i].x;
+                int y5 = npcChamber[i].y;
+                delete theGrid[x5][y5];
+                int ri = randomInt(18, ++seed);
+                NPC *n;
+                if (ri < 4) {
+                    n = new Werewolf(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'W'});
+                    #ifdef SHOWNPC
+                    type = 'W';
+                    #endif
+                } else if (ri < 7) {
+                    n = new Vampire(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'V'});
+                    #ifdef SHOWNPC
+                    type = 'V';
+                    #endif
+                } else if (ri < 12) {
+                    n = new Goblin(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'N'});
+                    #ifdef SHOWNPC
+                    type = 'N';
+                    #endif
+                } else if (ri < 14) {
+                    n = new Troll(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'T'});
+                    #ifdef SHOWNPC
+                    type = 'T';
+                    #endif
+                } else if (ri < 16) {
+                    n = new Phoenix(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'X'});
+                    #ifdef SHOWNPC
+                    type = 'X';
+                    #endif
+                } else if (ri < 18) {
+                    n = new Merchant(npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'M'});
+                    #ifdef SHOWNPC
+                    type = 'M';
+                    #endif
+                }
+                #ifdef SHOWNPC
+                if (!withCompass) {
+                    std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << std::endl;
+                } else {
+                    std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << GREEN << "  With Compass" << RESET << std::endl;
+                }
+                #endif
+                td->notify(*this);
+                n->setWithCompass(withCompass);
+                theGrid[x5][y5] = n;
+                break;
+            }
+        }
+        npcChamber.clear();
+    }
 
 
 
