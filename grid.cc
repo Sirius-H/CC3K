@@ -319,7 +319,7 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
             setState(std::pair<Coordinate, char>{potionChamber[i], 'P'});
             // Debugger
             #ifdef SHOWPOTION
-            std::cout << "Generated Potion: Coordinate: " << potionChamber[i] << "  Effect: " << randomPotionEffect << std::endl;
+            std::cout << "Generated Potion: Coordinate: " << potionChamber[i] << "  Effect: " << codeTranslator(randomPotionEffect) << std::endl;
             #endif
 
             td->notify(*this);
