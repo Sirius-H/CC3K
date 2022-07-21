@@ -27,6 +27,7 @@
 #include "potion.h"
 #include "treasure.h"
 #include "barriersuit.h"
+#include "compass.h"
 #include "npc.h"
 #include "merchant.h"
 #include "dragon.h"
@@ -269,8 +270,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     #endif
 
 
-
-    
     // Step 3: Randomly generate Stair
 	std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
     std::vector<Coordinate> stairChamber = chambers[num[0]];
@@ -281,8 +280,9 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
         if (theGrid[x2][y2]->getName() == "Floor") {
             delete theGrid.at(x2).at(y2);
             theGrid[x2][y2] = new Stair{stairChamber[i]};
+            StairLocation = stairChamber[i];
             // Debugger
-            setState(std::pair<Coordinate, char>{stairChamber[i], '/'});
+            setState(std::pair<Coordinate, char>{stairChamber[i], '\\'});
             td->notify(*this);
             break;
         }
@@ -294,7 +294,6 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     std::cout << ">>> Stair generated" << std::endl<< std::endl;
     #endif
     
-
 
     // Step 4: potion generations
     // Debugger
@@ -412,25 +411,44 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     std::cout << ">>> Treasure generated" << std::endl;
     #endif
 
-/*
+
     // Step 6: Barrier Suit
     if (barrierSuit) {
-        while (true) {
-            std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
-            std::vector<Coordinate> bsChamber = chambers[num[0]];
-            std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(++seed));
-            int x5 = bsChamber[0].x;
-            int y5 = bsChamber[0].y;
-            if (theGrid[x5][y5]->getName() == "Floor") {
-                delete theGrid[x5][y5];
-                theGrid[x5][y5] = new BarrierSuit{bsChamber[0]};
-                bsChamber.clear();
-                break;
+        std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
+        std::vector<Coordinate> bsChamber = chambers[num[0]];
+        std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(++seed));
+        for (size_t i = 0; i < bsChamber.size(); i++) {
+            int x5 = bsChamber[i].x;
+            int y5 = bsChamber[i].y;
+            std::vector<Coordinate> bsNeighbours;
+            for (int m = -1; m <= 1; m++) {
+                for (int n = -1; n <= 1; n++) {
+                    if (theGrid[x5 + m][y5 + n]->getName() == "Floor") {
+                        bsNeighbours.emplace_back(Coordinate{x5 + m, y5 + n});
+                    }
+                }
             }
-            bsChamber.clear();
+            if ((int)(bsNeighbours.size()) == 0) { // if there is no place around the barrier suit for a dragon, then keep searching
+                bsNeighbours.clear();
+                continue;
+            }
+            // Creating BarrierSuit in the Grid
+            delete theGrid[x5][y5];
+            BarrierSuit* bs = new BarrierSuit{bsChamber[i]};
+            theGrid[x5][y5] = bs;
+            setState(std::pair<Coordinate, char>{bsChamber[i], 'B'});
+            td->notify(*this);
+
+            // Create a Dragon around the BarrierSuit
+            delete theGrid[bsNeighbours[0].x][bsNeighbours[0].y];
+            theGrid[bsNeighbours[0].x][bsNeighbours[0].y] = new Dragon{bsNeighbours[0], bs};
+            setState(std::pair<Coordinate, char>{bsNeighbours[0], 'D'});
+            td->notify(*this);
+            bsNeighbours.clear();
+            break;
         }
     }
-*/
+
     // Step 7: NPC generation
     
 
@@ -440,6 +458,14 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
     PCchamber.clear();
 	
     num.clear();
+
+    // Debugger
+    /*
+    delete theGrid[18][7];
+    theGrid[18][7] = new Compass{Coordinate{18,7}};
+    setState(std::pair<Coordinate,char>{Coordinate{18,7}, 'C'});
+    td->notify(*this);
+    */
 }
 
 
@@ -511,6 +537,8 @@ void Grid::updateGrid() {
                 NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
 
                 if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
+                    PC::coin += 1;
+                    PC::totalCoin +=1;
                     if (theGrid[i][j]->getName() == "Dragon") {
                         Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j]);
                         drg->notifyObserver();
@@ -576,6 +604,10 @@ void Grid::updateGrid() {
 
 bool Grid::canMoveTo(Coordinate cdn) { // for PC
     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
+        //debugger
+        if (theGrid[cdn.x][cdn.y]->getType() == "Item") {
+            std::cout << theGrid[cdn.x][cdn.y]->getName() << "has been unlocked!!!" << std::endl;
+        }
         return true;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
         throw std::runtime_error("You should not be moving on to a wall");
@@ -606,9 +638,13 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     }
     if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
         int code = theGrid[newCdn.x][newCdn.y]->state();
-        std::cout << "code: " << code << std::endl;
+        std::cout << MAGENTA << "Item: " << codeTranslator(code) << RESET << std::endl;
         PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
         p->applyEffect(code);
+        if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
+            setState(std::pair<Coordinate, char>{StairLocation, '\\'});
+            td->notify(*this);
+        }
     }
     std::string name = theGrid[newCdn.x][newCdn.y]->getName();
     int state = theGrid[newCdn.x][newCdn.y]->state();
@@ -745,20 +781,21 @@ void Grid::usePotion(Coordinate cdn) {
 void Grid::printState(int floorNum) const {
     std::cout << *td;
     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-    std::cout << "Coin: " << std::setprecision(3) << PC::coin << "                              Floor" << floorNum << std::endl;
+    std::cout << "Coin: " << std::setprecision(3) << PC::coin << "                              Floor " << floorNum << std::endl;
+    std::cout << "Total Coin: " << std::setprecision(3) << PC::totalCoin << std::endl; 
     std::cout << YELLOW << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << std::endl;
-    std::cout << "Barrier Suit Status:   ";
+    std::cout << "Barrier Suit Status:    ";
     if (p->getWithBarrierSuit()) {
-        std::cout << "ACQUIRED" << RESET;
+        std::cout << "<ACQUIRED>" << RESET;
     } else {
-        std::cout << "NOT ACQUIRED" << RESET;
+        std::cout << "<NOT ACQUIRED>" << RESET;
     }
     std::cout << std::endl;
     for (int i = -2; i <= 2; i++) {
         for (int j = -2; j <= 2; j++) {
             if (theGrid[PCLocation.x + i][PCLocation.y + j]->getType() == "NPC") {
                 NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j]);
-                std::cout << "NPC (" << PCLocation.x + i << "," << PCLocation.y + i << "): " << RED << n->getHP() << "HP  "  << n->getAtk() << "Atk  "  << n->getDef() << "Def"<< RESET << std::endl;
+                std::cout << RED << n->getName() << " (" << PCLocation.x + i << ", " <<  PCLocation.y + j << ") : " << "HP: " << n->getHP() << "   "  << "Atk: " << n->getAtk() << "   "  << "Def: " << n->getDef() << RESET << std::endl;
             }
         }
     }

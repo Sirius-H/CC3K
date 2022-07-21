@@ -16,6 +16,7 @@ class Grid: public Subject {
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
     Coordinate PCLocation;
+    Coordinate StairLocation;
     TextDisplay* td;
 	unsigned seed;
 	double coinVal;	

@@ -9,6 +9,7 @@ public:
   void notify(Subject &Dragon) override;
   std::string getName() const override;
   BarrierSuit(Coordinate cdn);
+  bool canStep() override;
 };
 
 #endif

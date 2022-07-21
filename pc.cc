@@ -72,7 +72,7 @@ void PC::applyEffect(int effect) {
         totalCoin += 2;
     } else if (effect == 8) { // Merchant Hoard
         // Debugger
-        std::cout << "Found a merchant horde" << std::endl;
+        std::cout << "Found a Merchant horde" << std::endl;
         coin += 4;
         totalCoin += 4;
     } else if (effect == 9) { // Dragon Hoard

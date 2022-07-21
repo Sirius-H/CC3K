@@ -77,11 +77,14 @@ int main(int argc, char* argv[]) {
 	int currFloor = 1; // Current floor number
 	std::vector<int> n;
 	for (int i = 1; i <= 5; i++) {
-		n.emplace_back(i + 1);
+		n.emplace_back(i);
 	}
 	std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
 	int barrierFloor = n[0];
 	n.clear();
+
+	// Debugger
+	std::cout << barrierFloor << std::endl;
 
 	// Create new Grid object (game)
 	Grid* g;
@@ -113,17 +116,17 @@ int main(int argc, char* argv[]) {
 				direction += cmd;
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
 				if (g->moveTo(destination)) {
-					// Debugger
-					std::cout << "Triggered going down stairs" << std::endl;
 
 					if (currFloor == 5) {
-						cout << "You Win! Your Score is: " << PC::totalCoin << endl;
+						cout << YELLOW << "You Win! Your Score is: " << PC::totalCoin << endl;
 						break;
 					}
+
 					currFloor += 1;
+					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					delete g;
 					// Debugger
-					std::cout << "DELETED GRID" << std::endl;
+					//std::cout << "DELETED GRID" << std::endl;
 
 					if (currFloor == barrierFloor) {
 						g = new Grid{argv[1], ++seed, pc, true};
@@ -131,7 +134,7 @@ int main(int argc, char* argv[]) {
 						g = new Grid{argv[1], ++seed, pc, false};
 					}
 					// Debugger
-					std::cout << "New grid created!" << std::endl;
+					//std::cout << "New grid created!" << std::endl;
 
 					g->printState(currFloor);
 					continue;
@@ -139,7 +142,8 @@ int main(int argc, char* argv[]) {
 				g->updateGrid();
 				g->printState(currFloor);
                 if (g->getHP() == 0) {
-                    cout << "DEFEATED!" << std::endl;
+                    cout << RED << "YOU ARE DEFEATED!" << RESET << std::endl;
+					cout << "Total Score: " << PC::totalCoin << endl;
                     break;
                 }
 				continue;

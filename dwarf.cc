@@ -32,12 +32,16 @@ void Dwarf::applyEffect(int effect) {
         pottionDefEffect -= 5;
     } else if (effect == 6) { // Normal gold pile
         coin += 1 * 2;
+        totalCoin += 1 * 2;
     } else if (effect == 7) { // Small Horde
         coin += 2 * 2;
+        totalCoin += 2 * 2;
     } else if (effect == 8) { // Merchant Hoard
         coin += 4 * 2;
+        totalCoin += 4 * 2;
     } else if (effect == 9) { // Dragon Hoard
         coin += 6 * 2;
+        totalCoin += 6 * 2;
     } else if (effect == 10) { // Barrier Suit acquired
         withBarrierSuit = true;
     } else if (effect == 11) { // Compass acquired
