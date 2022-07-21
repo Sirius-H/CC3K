@@ -131,9 +131,9 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
 }
 
 
-// Constructor (init the game)
-Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
-	gameDiffLevel = 1; // default: normal difficulty level
+// Default Constructor (initialize the game with random NPC/Items)
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit): seed{seed} {
+    gameDiffLevel = 1; // default: normal difficulty level
     int totalNPC = 20;
 	#ifdef EASYMODE
 	gameDiffLevel = 0;
@@ -145,16 +145,11 @@ Grid::Grid(std::string fileName, unsigned seed, char PCName, bool barrierSuit): 
 	gameDiffLevel = 2;
 	#endif
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
-    std::ifstream ifs;
-    ifs.open(fileName, std::ios::in);
-    std::string s;
     int lineNum = 0;
-
     std::vector<std::vector<Cell*>> tempGrid;
 
-    while (std::getline(ifs, s)) { // 目前只实现了floor.txt中仅包含单张地图
-        // Debugger
-        //std::cout << s << std::endl;
+    for (size_t i = 0; i < theFloor.size(); i++) {
+        std::string s = theFloor[i];
         std::vector<Cell*> tempRow1;
         std::vector<Cell*> tempRow2;
         int len = s.length();
@@ -922,3 +917,5 @@ void Grid::buyPotion(std::string s) {
 int Grid::getHP() {
     return theGrid[PCLocation.x][PCLocation.y]->getHP();
 }
+
+
