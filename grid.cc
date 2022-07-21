@@ -618,15 +618,15 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
     setState(std::pair<Coordinate,char>{newCdn, '@'});
     td->notify(*this);
-    if (PC::onTile == -1) {
-        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
-        setState(std::pair<Coordinate,char>{PCLocation, '.'});
-    } else if (PC::onTile == 1) {
+    if (PC::onTile == 1) {
         theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
         setState(std::pair<Coordinate,char>{PCLocation, '#'});
     } else if (PC::onTile == 2) {
         theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
         setState(std::pair<Coordinate,char>{PCLocation, '+'});
+    } else {
+        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+        setState(std::pair<Coordinate,char>{PCLocation, '.'});
     }
     PC::onTile = state;
     td->notify(*this);
