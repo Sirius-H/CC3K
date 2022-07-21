@@ -1113,6 +1113,6 @@ void Grid::buyPotion(std::string s) {
 
 int Grid::getHP() {
     return theGrid[PCLocation.x][PCLocation.y]->getHP();
-}
+} 
 
 
