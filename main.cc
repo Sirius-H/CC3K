@@ -98,7 +98,6 @@ int main(int argc, char* argv[]) {
             if (index == 0) {
                 startLine = s;
             } else if (s == startLine) {
-				std::cout << "Graph " << floorIndex << " read in success" << std::endl;
                 tempMap.emplace_back(s);
                 maps.emplace_back(tempMap);
                 tempMap.clear();
@@ -211,13 +210,15 @@ int main(int argc, char* argv[]) {
 				direction += cmd;
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
 				if (g->moveTo(destination)) {
-
 					if (currFloor == 5) {
-						cout << YELLOW << "You Win! Your Score is: " << PC::totalCoin << endl;
+						// Debugger
+						// cout << YELLOW << "You Win! Your Score is: " << PC::totalCoin << endl;
+						g->actionLog.emplace_back("You Win!");
 						break;
 					}
 
 					currFloor += 1;
+					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					delete g;
 
@@ -245,7 +246,6 @@ int main(int argc, char* argv[]) {
 				// Debugger
 				std::cout << "Current PC Location: " << g->getPCLocation() << std::endl;
 				std::cout << "Accessing cdn: " << destination << std::endl;
-				std::cout << direction << std::endl;
 
 				g->usePotion(destination);
 			} catch (runtime_error& errorMsg) {
@@ -316,13 +316,18 @@ int main(int argc, char* argv[]) {
 		}
 		
 		else if (cmd == 'b') {
-			string s;
-			cin >> cmd;
-			s += cmd;
-			cin >> cmd;
-			s += cmd;
-			g->buyPotion(s);
-			g->updateGrid();
+			string s = "";
+			try {
+				cin >> cmd;
+				s += cmd;
+				cin >> cmd;
+				s += cmd;
+				g->buyPotion(s);
+				//g->updateGrid();
+			} catch (std::runtime_error& msg) {
+				std::cout << msg.what() << std::endl;
+				continue;
+			}
 		} else {
 			std::cout << "Invalid command, please try again!" << std::endl;
 			continue;
@@ -331,6 +336,12 @@ int main(int argc, char* argv[]) {
 		// NPC's round & Grid update
 		g->updateGrid();
 		g->printState(currFloor);
+		std::cout << "Actions:" << std::endl;
+		for (size_t i = 0; i < g->actionLog.size(); i++) {
+			std::cout << g->actionLog[i] << std::endl;
+		}
+		g->actionLog.clear();
+
 		if (g->getHP() == 0) {
 			std::cout << CYAN << "##### " << left << setw(22) << setfill(' ') << "GAME OVER! Defeated!" << right << setw(5) << "#####" << std::endl;
 			std::cout << "##### TOTAL SCORE: " << left << setw(9) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
@@ -338,12 +349,9 @@ int main(int argc, char* argv[]) {
 		}
 
 	}
+
 	delete g;
 	return 0;
-
-
-
-	// CASE 2: If user-defined floor file provided, read in maps and load the game state based on the given info
 
 }
 

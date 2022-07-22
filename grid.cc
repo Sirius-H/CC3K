@@ -116,6 +116,28 @@ char SymTranslator(std::string code) {
 }
 
 
+// Helper
+std::string directionCalculator(Coordinate oldCdn, Coordinate newCdn) {
+    if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y - 1) {
+        return "Northwest";
+    } else if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y) {
+        return "North";
+    } else if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y + 1) {
+        return "Northeast";
+    } else if (newCdn.x == oldCdn.x && newCdn.y == oldCdn.y - 1) {
+        return "West";
+    } else if (newCdn.x == oldCdn.x && newCdn.y == oldCdn.y + 1) {
+        return "East";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y - 1) {
+        return "Southwest";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y) {
+        return "South";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y + 1) {
+        return "Souteast";
+    } else {
+        return "";
+    }
+}
 
 
 // Returns a random number between 0 and x-1
@@ -129,6 +151,11 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
     num.clear();
     return answer;
 }
+
+
+
+
+
 
 
 // Default Constructor (initialize the game with random NPC/Items)
@@ -237,21 +264,25 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     delete theGrid.at(x1).at(y1);
     if (PCName == 'h') {
         theGrid[x1][y1] = new Human{PCchamber[0]};
+        race = "Human";
         #ifdef SHOWPC
         std::cout << "Human PC created successfully" << std::endl;
         #endif
 
     } else if (PCName == 'd') {
+        race = "Dwarf";
         theGrid[x1][y1] = new Dwarf{PCchamber[0]};
         #ifdef SHOWPC
         std::cout << "Dwarf PC created successfully" << std::endl;
         #endif
     } else if (PCName == 'e') {
+        race = "Elf";
         theGrid[x1][y1] = new Elf{PCchamber[0]};
         #ifdef SHOWPC
         std::cout << "Elf PC created successfully" << std::endl;
         #endif
     } else if (PCName == 'o') {
+        race = "Orc";
         theGrid[x1][y1] = new Orc{PCchamber[0]};
         #ifdef SHOWPC
         std::cout << "Orc PC created successfully" << std::endl;
@@ -832,6 +863,7 @@ void Grid::updateGrid() {
                 NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
 
                 if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
+                    actionLog.emplace_back(theGrid[i][j]->getName() + " is eliminated.");
                     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
                     p->applyElimNPCAward();
 
@@ -855,6 +887,7 @@ void Grid::updateGrid() {
                     int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
                     int dmg = theGrid[i][j]->attack(def);
                     theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
+                    actionLog.emplace_back(theGrid[i][j]->getName() + " deals " + std::to_string(dmg) + " HP damage to PC.");
                     n->setMoved();
                 } 
                                 
@@ -921,8 +954,9 @@ bool Grid::canMoveTo(Coordinate cdn) { // for PC
 
 bool Grid::moveTo(Coordinate newCdn) { // for PC
     // Debugger
-    std::cout << "PC Location: " << PCLocation << std::endl;
-    std::cout << "Target Cdn:" << newCdn << std::endl;
+    //std::cout << "PC Location: " << PCLocation << std::endl;
+    //std::cout << "Target Cdn:" << newCdn << std::endl;
+    std::string msg = "";
 
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
         return true;
@@ -932,20 +966,26 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     } catch (std::runtime_error& msg) {
         throw;
     }
+    msg = msg + "PC moved to " + directionCalculator(PCLocation, newCdn);
+
     if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
         int code = theGrid[newCdn.x][newCdn.y]->state();
+        // Debugger
         std::cout << MAGENTA << "Item: " << codeTranslator(code) << RESET << std::endl;
+        msg = msg + " and collected " + codeTranslator(code);
+
         PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
         p->applyEffect(code);
         if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
             setState(std::pair<Coordinate, char>{StairLocation, '\\'});
             td->notify(*this);
-            std::cout << GREEN << "You had the compass, stair revealed >>>" << RESET << std::endl;
+            // Debugger
+            //std::cout << GREEN << "You had the compass, stair revealed >>>" << RESET << std::endl;
+            actionLog.emplace_back("PC obtains the Compass. Stair is now revealed.");
         }
     }
     std::string name = theGrid[newCdn.x][newCdn.y]->getName();
     int state = theGrid[newCdn.x][newCdn.y]->state();
-
     delete theGrid[newCdn.x][newCdn.y];
     theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
     theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
@@ -968,7 +1008,11 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     // auto attack to surrounding NPC
     std::vector<Coordinate> v;
     countNeighbour(PCLocation, v);
-    if (v.size() == 1 && (theGrid[v[0].x][v[0].y]->getName() != "Merchant" || Merchant::hatred != 0)) {
+    if (v.size() == 0) {
+        actionLog.emplace_back(msg + ".");
+    } else if (v.size() == 1 && (theGrid[v[0].x][v[0].y]->getName() != "Merchant" || Merchant::hatred != 0)) {
+        msg = msg + " and meets 1 NPC: " + theGrid[v[0].x][v[0].y]->getName();
+        actionLog.emplace_back(msg + ".");
         try {
             PCAttack(v[0]);
         }
@@ -976,6 +1020,8 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
             std::cout << errorMsg.what() << std::endl;
         }
     } else if (v.size() > 1) {
+        msg = msg + " and meets more than 1 NPC.";
+        actionLog.emplace_back(msg + ".");
         std::cout << "More than 1 enermy around, please choose one to attack, or press 's' to skip (i.e.: do not attack)" << std::endl;
         for (size_t i = 0; i < v.size(); i++) {
             std::cout << YELLOW <<  "(" << i << "): " << RESET << "Coordinate: " << v[i] << "  " << theGrid[v[i].x][v[i].y]->getName() << std::endl;
@@ -1012,6 +1058,18 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         return false;
     } 
     v.clear();
+
+    int potionCount = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (theGrid[PCLocation.x + i][PCLocation.y + j]->getName() == "Potion") {
+                potionCount++;
+            }
+        }
+    }
+    if (potionCount > 0) {
+        actionLog.emplace_back("PC meets " + std::to_string(potionCount) + " unknown Potion.");
+    }
     return false;
 }
 
@@ -1038,6 +1096,7 @@ void Grid::PCAttack(Coordinate cdn) {
             theGrid[cdn.x][cdn.y] = new Floor{cdn};
         }
         */
+        actionLog.emplace_back("PC deals " + std::to_string(dmg) + " HP damage to " + theGrid[cdn.x][cdn.y]->getName() + ".");
     } else {
         throw std::runtime_error("There is no NPC at the position you are attacking.");
     }
@@ -1058,13 +1117,19 @@ void Grid::usePotion(Coordinate cdn) {
                     theGrid[cdn.x][cdn.y] = new Floor{cdn};
                     setState(std::pair<Coordinate,char>{cdn, '.'});
                     td->notify(*this);
-                    std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
+                    // Debugger
+                    //std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
+                    actionLog.emplace_back("PC uses Potion: " + codeTranslator(code) + ".");
+
                     try {
                         p->applyEffect(code);
+                        // Debugger
                         std::cout << RED << "Effect: " << codeTranslator(code) << RESET << std::endl;
                     }
                     catch (std::runtime_error& errorMsg) {
+                        // Debugger
                         std::cout << RED << "Effect: " << errorMsg.what() << RESET << std::endl;
+                        actionLog.emplace_back(errorMsg.what());
                     }
                     break;
                 }
@@ -1078,27 +1143,36 @@ void Grid::usePotion(Coordinate cdn) {
 void Grid::printState(int floorNum) const {
     std::cout << *td;
     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-    std::cout << "Coin: " << std::setprecision(3) << PC::coin << "                              Floor " << floorNum << std::endl;
-    std::cout << "Total Coin: " << std::setprecision(3) << PC::totalCoin << std::endl; 
-    std::cout << YELLOW << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << std::endl;
-    std::cout << "Barrier Suit Status:    ";
+    std::cout << CYAN << "Race: " << race << RESET << "                                                            Floor " << floorNum << std::endl;
+    std::cout << YELLOW << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
+    std::cout << "Total Score: " << std::setprecision(3) << PC::totalCoin << RESET << std::endl; 
+    std::cout << GREEN << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << RESET << std::endl;
+    std::cout << CYAN << "Barrier Suit Status:    ";
     if (p->getWithBarrierSuit()) {
-        std::cout << "<ACQUIRED>" << RESET;
+        std::cout << GREEN << "<ACQUIRED>" << RESET;
     } else {
-        std::cout << "<NOT ACQUIRED>" << RESET;
+        std::cout << RED << "<NOT ACQUIRED>" << RESET;
     }
     std::cout << std::endl;
+    std::cout << CYAN << "Compass Status:         ";
+    if (p->getWithCompass()) {
+        std::cout << GREEN << "<ACQUIRED>" << RESET;
+    } else {
+        std::cout << RED << "<NOT ACQUIRED>" << RESET;
+    }
+    std::cout << std::endl;
+    std::cout << RED << "NPCs around PC: " << RESET << std::endl;
     for (int i = -2; i <= 2; i++) {
         for (int j = -2; j <= 2; j++) {
             if (theGrid[PCLocation.x + i][PCLocation.y + j]->getType() == "NPC") {
                 NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j]);
-                std::cout << RED << n->getName() << " (" << PCLocation.x + i << ", " <<  PCLocation.y + j << ") : " << "HP: " << n->getHP() << "   "  << "Atk: " << n->getAtk() << "   "  << "Def: " << n->getDef() << RESET << std::endl;
+                std::cout << "  " << RED << n->getName() << " (" << PCLocation.x + i << "," <<  PCLocation.y + j << "): " << "HP: " << n->getHP() << "   "  << "Atk: " << n->getAtk() << "   "  << "Def: " << n->getDef() << RESET << std::endl;
             }
         }
     }
 }
 
-void Grid::buyPotion(std::string s) {
+void Grid::buyPotion(std::string dir) {
     int x = getPCLocation().x;
     int y = getPCLocation().y;
     std::vector<Coordinate> v;
@@ -1106,36 +1180,41 @@ void Grid::buyPotion(std::string s) {
     countNeighbour(PCLocation, v);
     if (Merchant::hatred != 0) return;
     for (size_t i = 0; i < v.size(); i++) { // Freeze all the merchants 1 unit around PC
-        if (theGrid[v[i].x][v[i].y]->getName() == "Merchant" && Merchant::hatred == 0) {
+        if (theGrid[v[i].x][v[i].y]->getName() == "Merchant") {
             dynamic_cast<NPC*>(theGrid[v[i].x][v[i].y])->setMoved();
         }
     }
-    Coordinate l = convertCdn(getPCLocation(), s);
+    Coordinate l = convertCdn(getPCLocation(), dir);
     if (theGrid[l.x][l.y]->getName() == "Merchant") {
 		std::cout << "Each potion costs 10 coins" << std::endl;
         for (int i = 0; i < 3; i++) {
             int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[i];
-            std::cout << i + 1 << ": " << codeTranslator(effect) << std::endl;
+            std::cout << "(" << std::to_string(i + 1) << "): " << codeTranslator(effect) << std::endl;
         }
-        std::cin >> c;
-        while (c != 's' || !std::cin.fail()) {
-            if (c - '0' == 1 || c - '0' == 2 || c - '0' == 3) {
+        std::cout << "Please enter the corresponding number to buy potion, or enter 's' to skip >>>" << std::endl;
+        // reading in option
+        while (std::cin >> c) {
+            if (c == 's') break;
+            if (c == '1' || c == '2' || c == '3') {
                 if (PC::coin >= 10) { // If PC has enough money to buy this potion
                     PC::coin -= 10;
                     int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[c - '1'];
                     dynamic_cast<PC*>(theGrid[x][y])->applyEffect(potionBought);
-                    std::cout << "Potion bought successfully" << std::endl;
+                    std::cout << "Potion bought successfully." << std::endl;
                 } else {
-                    std::cout << "Not enough gold!" << std::endl;
+                    std::cout << "Not enough gold! Transaction cancelled." << std::endl;
                 }
             } else {
-                std::cout << "wrong number!" << std::endl;
+                std::cout << "Incorrect number! Please try again!" << std::endl;
+                continue;
             }
-			std::cout << "Press s to escape" << std::endl;
-            std::cin >> c;
+			std::cout << "Enter any number to continue, or press s to escape >>>" << std::endl;
         }        
+    } else {
+        throw std::runtime_error("There is no Merchant at PC's " + directionCalculator(PCLocation, l) + " direction.");
     }
 }
+
 
 
 int Grid::getHP() {

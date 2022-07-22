@@ -26,7 +26,6 @@ int PC::attacked(int dmg) { // returns the actual damage to PC
 }
 
 void PC::applyEffect(int effect) {
-    std::cout << "Triggered applyEffect" << std::endl;
     if (effect == 0) { // Restore Health
         // Debugger
         std::cout << "Found a Restore Health potion" << std::endl;
@@ -108,5 +107,9 @@ void PC::resetCoin() {
 void PC::applyElimNPCAward() {
     PC::coin += 1;
     PC::totalCoin += 1;
+}
+
+bool PC::getWithCompass() const {
+    return withCompass;
 }
 

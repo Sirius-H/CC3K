@@ -4,6 +4,7 @@
 #include "cell.h"
 #include "subject.h"
 #include "coordinate.h"
+#include "termcodes.h"
 
 TextDisplay::TextDisplay(std::vector<std::vector<Cell*>>& g) {
     int height = g.size();
@@ -47,7 +48,19 @@ std::ostream& operator<<(std::ostream& out, TextDisplay& td) {
     for (int i = 0; i < height; i++) {
         int width = td.grid[i].size();
         for (int j = 0; j < width; j++) {
-            out << td.grid[i][j];
+            if (td.grid[i][j] == '@') {
+                out << YELLOW << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'V' || td.grid[i][j] == 'W' ||td.grid[i][j] == 'N' ||td.grid[i][j] == 'M' ||td.grid[i][j] == 'D' ||td.grid[i][j] == 'X' ||td.grid[i][j] == 'T') {
+                out << BOLDRED << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'G' || td.grid[i][j] == 'B') {
+                out << BOLDGREEN << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'P') {
+                out << BOLDCYAN << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == '\\') {
+                out << BOLDWHITE << td.grid[i][j] << RESET;
+            } else {
+                out << td.grid[i][j];
+            }
         }
         out << std::endl;
     }

@@ -17,6 +17,7 @@ class Grid: public Subject {
     std::vector<std::vector<Cell*>> theGrid;
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
+    std::string race;
     Coordinate PCLocation;
     Coordinate StairLocation;
     TextDisplay* td;
@@ -31,6 +32,7 @@ class Grid: public Subject {
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
 public:
+    std::vector<std::string> actionLog;
     Grid(std::vector<std::string>& theFloor, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
     Grid(std::vector<std::string>& theFloor, std::vector<Info>& mapInfo, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
     void init(char c);

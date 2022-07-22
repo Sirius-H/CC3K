@@ -29,6 +29,7 @@ public:
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;
+    bool getWithCompass() const;
     static void resetCoin();
     virtual void applyElimNPCAward();
 };
