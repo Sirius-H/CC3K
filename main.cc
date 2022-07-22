@@ -11,6 +11,7 @@
 #include "termcodes.h"
 #include "pc.h"
 #include "info.h"
+#include "coordinate.h"
 using namespace std;
 
 // Helper
@@ -23,6 +24,40 @@ void printIntroMsg() {
     std::cout << "(4) Orc  " << YELLOW << "(o)" << RESET << ": HP:180  Attack:30  Defence:25    <gold X0.5>" << std::endl;
     std::cout << ">>> Please enter 'h', 'd', 'e', or 'o'" << std::endl;
 }
+
+
+void printMaps(vector<vector<string>>& maps) {
+	for (size_t i = 0; i < maps.size(); i++) {
+		std::cout << GREEN << "Floor: " << i + 1 << RESET << std::endl;
+		std::cout << "Size: " << maps[i].size() << std::endl;
+		for (size_t j = 0; j < maps[i].size(); j++) {
+			std::cout << maps[i][j] << std::endl;
+		}
+	}
+
+}
+
+void printMap(vector<string>& m) {
+	std::cout << "Size: " << m.size() << std::endl;
+	for (size_t i = 0; i < m.size(); i++) {
+		std::cout << GREEN << m[i] << RESET << std::endl;
+	}
+
+}
+
+void printInfoList(vector<vector<Info>> lst) {
+	std::cout << "Level num: " << lst.size() << std::endl;
+	for (size_t i = 0; i < lst.size(); i++) {
+		std::cout << "Level: " << i << std::endl;
+		std::cout << "Contents: " << lst[i].size() << std::endl;
+		for (size_t j = 0; j < lst[i].size(); j++) {
+			Info curr = lst[i][j];
+			std::cout << "Coordinate: " << curr.cdn << " Item: " << curr.item << " effect: " << curr.effectCode << std::endl;
+		}
+	}
+}
+
+
 
 
 
@@ -41,66 +76,75 @@ int main(int argc, char* argv[]) {
     std::ifstream ifs;
     ifs.open(fileName, std::ios::in);
     string s;
+	std::vector<string> tempRecord;
+	while (getline(ifs, s)) {
+		tempRecord.emplace_back(s);
+	}
+	cin.clear();
+
+
     string startLine;
     vector<vector<string>> maps;
     vector<vector<Info>> mapInfo; // Info: {Coordinate cdn, char itemName, int effectCode}
-    int floorIndex = 1;
+    int floorIndex = 0;
     int PCFloorIndex = 6;
-    bool foundPC = false;
     int index = 0;
     vector<string> tempMap;
     vector<Info> tempInfo;
     bool infoLine = false;
-    while (std::getline(ifs, s)) {
+    for (size_t i = 0; i < tempRecord.size(); i++) {
+		s = tempRecord[i];
         if (!infoLine) { // If this is a map layout line
             if (index == 0) {
                 startLine = s;
             } else if (s == startLine) {
+				std::cout << "Graph " << floorIndex << " read in success" << std::endl;
                 tempMap.emplace_back(s);
                 maps.emplace_back(tempMap);
                 tempMap.clear();
-                infoLine = true;
                 floorIndex++;
                 index = 0;
+				if (i + 1 < tempRecord.size() && tempRecord[i + 1][0] != '|') {
+					infoLine = true;
+				} else {
+					mapInfo.emplace_back(tempInfo);
+					tempInfo.clear();
+				}
+				continue;
             } 
         	tempMap.emplace_back(s);
             index++;
-            // Check whether pc is in this map (if ps has not been found)
-			if (!foundPC) {
-				char temp;
-				istringstream iss{s};
-				while (iss>>temp) {
-					if (temp == '@') {
-						PCFloorIndex = floorIndex;
-						foundPC = true;
-						break;
-                	}
-        		}
-			}
         }
 
 
         else { // If this is an info line
             // check whether the next line is also a line of info
-            char c = ifs.peek();
-            if (cin.eof() || !('0' <= c && c <= '9')) {
-                mapInfo.emplace_back(tempInfo);
-                tempInfo.clear();
-                infoLine = false;
-            }
-            int x, y, effectCode;
+			std::cout << YELLOW << s << RESET << std::endl;
+            int x, y, effectCode = 0;
             char item;
             istringstream iss{s};
-            iss >> x >> y >> item >> effectCode;
-            if (cin.fail()) {
-                effectCode = 0;
-                cin.clear();
-            }
+            iss >> x >> y >> item;
+			std::cout << YELLOW << "Coordinate: (" << x << "," << y << ")  Item: " 
+			<< item << "  Effect Code: " << effectCode << RESET << std::endl;
+
             tempInfo.emplace_back(Info{Coordinate{x, y}, item, effectCode});
+
+			if (item == '@') {
+				PCFloorIndex = floorIndex;
+			}
+			if (i + 1 < tempRecord.size() && tempRecord[i + 1][0] == '|') { // EOF or not an Info line
+				mapInfo.emplace_back(tempInfo);
+                tempInfo.clear();
+                infoLine = false;
+			}
         }
 
     }
 
+	// Debugger
+	// std::cout << YELLOW << "PCFloorIndex: " << PCFloorIndex << RESET << std::endl;
+	//printMaps(maps);
+	//printInfoList(mapInfo);
 
 
 	// Step 2: Call the corresponding constructor to initialize the game Grid
@@ -122,6 +166,10 @@ int main(int argc, char* argv[]) {
 
 
 	int currFloor = 1; // Current floor number
+	if (PCFloorIndex != 6) {
+		currFloor = PCFloorIndex;
+	}
+
 	std::vector<int> n;
 	for (int i = 1; i <= 5; i++) {
 		n.emplace_back(i);
@@ -131,7 +179,7 @@ int main(int argc, char* argv[]) {
 	n.clear();
 
 	// Debugger
-	std::cout << "Barrier Suit floor: " << barrierFloor << std::endl;
+	//std::cout << "Barrier Suit floor: " << barrierFloor << std::endl;
 	//std::cout << "PCFloorIndex: " << PCFloorIndex << std::endl;
 	//std::cout << "Seed: " << seed << std::endl;
 	//std::cout << "PC: " << pc << std::endl;
@@ -140,10 +188,11 @@ int main(int argc, char* argv[]) {
 	Grid* g;
 
 	if (PCFloorIndex == 6) {
+		// Debugger
 		std::cout << "Maps size: " << maps.size() << std::endl;
 		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor};
 	} else {
-
+		g = new Grid(maps[PCFloorIndex - 1], mapInfo[PCFloorIndex - 1], seed, pc);
 	}
 
 	g->printState(currFloor);
@@ -171,13 +220,15 @@ int main(int argc, char* argv[]) {
 					currFloor += 1;
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					delete g;
-					// Debugger
-					//std::cout << "DELETED GRID" << std::endl;
 
-					g = new Grid{maps[currFloor], seed, pc, currFloor == barrierFloor};
-
-					// Debugger
-					//std::cout << "New grid created!" << std::endl;
+					g = new Grid{maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor};
+					/*
+					if (PCFloorIndex == 6) {
+						g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
+					} else {
+						g = new Grid(maps[currFloor - 1], mapInfo[currFloor - 1], seed, pc);
+					}
+					*/
 
 					g->printState(currFloor);
 				}
@@ -224,7 +275,10 @@ int main(int argc, char* argv[]) {
 
 		} else if (cmd == 'r') {
 			currFloor = 1;
-			int currFloor = 1; // Current floor number
+			if (PCFloorIndex != 6) {
+				currFloor = PCFloorIndex;
+			}
+
 			std::vector<int> n;
 			for (int i = 1; i <= 5; i++) {
 				n.emplace_back(i + 1);
@@ -252,7 +306,11 @@ int main(int argc, char* argv[]) {
 				seed = std::chrono::system_clock::now().time_since_epoch().count();
 			}
 			*/
-			g = new Grid{maps[0], seed, pc, currFloor == barrierFloor};
+			if (PCFloorIndex == 6) {
+				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
+			} else {
+				g = new Grid(maps[currFloor - 1], mapInfo[currFloor - 1], seed, pc);
+			}
 			g->printState(currFloor);
 			continue;
 		}

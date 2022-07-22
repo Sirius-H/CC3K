@@ -10,3 +10,47 @@ SHOWPC - show the map with only pc generated
 SHOWSTAIR - show the map with pc, stair generated
 SHOWPOTION - show the map with pc, stair, potions (including their location and type) generated
 SHOWTREASURE - show the map with pc, stair, potions and treasures (including their location and type) generated
+
+
+
+####### Floor.txt Requirement:
+
+(1) Each floor (map) must be a rectangle. Walls are defined by '|' and '-'. Passages are defined by '+' and '#'. 
+    And floors are defined by '.'.
+(2) Each map is followed by some (maybe 0) lines of information about where each type of item/NPC will be spawned at.
+(3) We assume that each info line is valid:
+	i.e., you are not putting any item on an occupied cell or inside walls/passages, and all the requirements below are met.)
+(4) By default, PC and all NPCs are spawned with 100% HP. However, you can make the game easier by using the macro "EASYMODE".
+    (In this ase, all NPCs will only have 1/2 HP.)
+(5) floor.txt (name can be different) should contain exactly 5 maps (even though each map is the same). There can be 0 or 
+    multiple lines of info followed by it. The maps are default to be empty, but you can add the items at locations which 
+    are specified below in the info section. But remember, the added items (except walls and passages) are not recorded unless
+    you specify them in the info section manually!!! (i.e.: if an item is shown in map but is not stated in the info section,
+    then it won't be generated.)
+(6) If none of the 5 maps contains PC '@', then we'll treat this as a new game and randomly generate items on each map.
+       
+
+(7) For info line:
+	For each line, the input should be in the format of "x y CHAR effect_code", where x and y are integers representing the
+    location of the item to be spawned at. CHAR represents the item you wish to create and its effect code (see below).
+	(a) For PC (@), there should be an integers from 0 to 3 following it showing the character the player wish to play as.
+		(0-human, 1-dwarf, 2-elves, 3-orc)
+	(b) For each treasure(G), it must be followed by a number from 6 to 9 representing the type of gold pile:
+		(6-normal gold pile, 7-small horde, 8-merchant horde, 9-dragon horde)
+	(c) For NPC, you need to specify with type of NPC it is. (e.g.: (V)Vampire, (W)Werewolf, (N)Goblin, (M)Merchant, (D)Dragon,
+        (X)Phoenix, (T)Troll). The effect code is either 0 or 1, representing that whether it holds the compass.
+	(d) For each Dragon horde or BarrierSuit spawned, there must be a following line showing a guardian dragon, which must
+		be 1 unit around it. (i.e.: the dragon's coordinate must be (x +/- 1, y +/- 1))
+	(e) For each Potion(P), it must be followed by a number from 0 to 5 representing its effect:
+		(0-Restore Health, 1-Boost Attack, 2-Boost Defence, 3-Poison Health, 4-Wound Attack, 5-Wound Defence)
+     
+    Samples:
+    4 9 @ 0 // spawn a Player Character of Human at location (4,9)
+    2 3 G 6 // spawn a Treaure of normal gold pile at location (2,3)
+    6 6 T 0 // spawn a Troll (NPC) at location (6,6) (it does not carry the compass)
+    2 5 G 9 // spawn a Treasure of dragon horde at location (2,5)
+    2 6 D // if the previous line is a dragon horde or a barrier suit, this line must be spawn a dragon 1 unit around it
+    4 5 B // spawn a Barrier Suit at location (4,5)
+    4 3 D // same as dragon horde: a guaidian dragon must exist 1 unit around the barrier suit.
+    2 2 P 2 // spawn a Potion of Boost Attack at location (2,2)
+    9 9 S // spawn a Stair at (9,9)
