@@ -70,6 +70,15 @@ int main(int argc, char* argv[]) {
 		istringstream iss{argv[2]};
 		iss >> seed;
 	}
+	vector<string> flags;
+	if (argc > 3) {
+		for (int i = 3; i < argc; i++) {
+			string s = argv[i];
+			flags.emplace_back(s);
+		}
+	}
+
+	
 
     // Step 1: Read in maps and store them in vector<vetor<string>> maps where each string represents each line
     std::ifstream ifs;
@@ -178,9 +187,9 @@ int main(int argc, char* argv[]) {
 	if (PCFloorIndex == 6) {
 		// Debugger
 		std::cout << "Maps size: " << maps.size() << std::endl;
-		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor};
+		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor, &flags};
 	} else {
-		g = new Grid{maps[PCFloorIndex - 1], seed, pc};
+		g = new Grid{maps[PCFloorIndex - 1], seed, pc, &flags};
 	}
 	g->printState(currFloor);
 
@@ -287,9 +296,9 @@ int main(int argc, char* argv[]) {
 			}
 			*/
 			if (!foundPC) {
-				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
+				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor, &flags};
 			} else {
-				g = new Grid{maps[currFloor - 1], seed, pc};
+				g = new Grid{maps[currFloor - 1], seed, pc, &flags};
 			}
 			g->printState(currFloor);
 			continue;
@@ -308,7 +317,36 @@ int main(int argc, char* argv[]) {
 				std::cout << msg.what() << std::endl;
 				continue;
 			}
-		} else {
+		}
+		
+		else if (cmd == '+') {
+			string f;
+			cin >> f;
+			flags.emplace_back(f);
+			std::cout << "New flag: \"" f << "\" has been deployed." << std::endl;
+			continue;
+		}
+
+		else if (cmd == '-') {
+			string f;
+			cin >> f;
+			bool found = false;
+			for (size_t i = 0; i < flags.size(); i++) {
+				if (flags[i] == f) {
+					flags.erase(flags.begin() + i);
+					std::cout << "Flag: \"" << f << "\" has been undeployed." << std::endl;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				std::cout << "No flag called \"" << f << "\" has been deployed, please check your spelling." << std::endl;
+				continue;
+			}
+		}
+		
+		
+		else {
 			std::cout << "Invalid command, please try again!" << std::endl;
 			continue;
 		}

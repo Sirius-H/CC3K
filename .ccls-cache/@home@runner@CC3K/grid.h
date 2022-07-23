@@ -6,6 +6,7 @@
 #include <map>
 #include <chrono>
 #include <string>
+#include "info.h"
 #include "coordinate.h"
 #include "subject.h"
 
@@ -16,11 +17,11 @@ class Grid: public Subject {
     std::vector<std::vector<Cell*>> theGrid;
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
+    std::string race;
     Coordinate PCLocation;
     Coordinate StairLocation;
     TextDisplay* td;
 	unsigned seed;
-	double coinVal;	
 	int gameDiffLevel;
 	// 0: easy mode (more gold, NPC 1/2 HP)
 	// 1: medium mode (normal mode)
@@ -29,9 +30,11 @@ class Grid: public Subject {
     void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
+std::vector<std::string> *flags;
 public:
-    Grid(std::vector<std::string>& theFloor, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
-    Grid(std::vector<std::string>& file, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), int level = 1);
+    std::vector<std::string> actionLog;
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags);
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string> *flags);
     void init(char c);
     Coordinate& getPCLocation();
     void updatePlayer();

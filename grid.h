@@ -30,11 +30,11 @@ class Grid: public Subject {
     void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
+    std::vector<std::string> *flags;
 public:
     std::vector<std::string> actionLog;
-    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit);
-    Grid(std::vector<std::string>& theFloor, std::vector<Info>& mapInfo, unsigned seed, char PCName);
-    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName);
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags);
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string> *flags);
     void init(char c);
     Coordinate& getPCLocation();
     void updatePlayer();
