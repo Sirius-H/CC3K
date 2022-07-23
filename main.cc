@@ -10,7 +10,6 @@
 #include "grid.h"
 #include "termcodes.h"
 #include "pc.h"
-#include "info.h"
 #include "coordinate.h"
 using namespace std;
 
@@ -84,68 +83,14 @@ int main(int argc, char* argv[]) {
 
     string startLine;
     vector<vector<string>> maps;
-    int floorIndex = 0;
+    int floorIndex = 1;
     int PCFloorIndex = 6;
-	int bsFloorIndex = 6;
 	bool foundPC = false;
 	bool foundBS = false;
     int index = 0;
     vector<string> tempMap;
 
-	#ifdef CUSTOMIZEDREADMAP
-	vector<vector<Info>> mapInfo; // Info: {Coordinate cdn, char itemName, int effectCode}
-	vector<Info> tempInfo;
-	bool infoLine = false;
-    for (size_t i = 0; i < tempRecord.size(); i++) {
-		s = tempRecord[i];
-        if (!infoLine) { // If this is a map layout line
-            if (index == 0) {
-                startLine = s;
-            } else if (s == startLine) {
-                tempMap.emplace_back(s);
-                maps.emplace_back(tempMap);
-                tempMap.clear();
-                floorIndex++;
-                index = 0;
-				if (i + 1 < tempRecord.size() && tempRecord[i + 1][0] != '|') {
-					infoLine = true;
-				} else {
-					mapInfo.emplace_back(tempInfo);
-					tempInfo.clear();
-				}
-				continue;
-            } 
-        	tempMap.emplace_back(s);
-            index++;
-        }
 
-
-        else { // If this is an info line
-            // check whether the next line is also a line of info
-			std::cout << YELLOW << s << RESET << std::endl;
-            int x, y, effectCode = 0;
-            char item;
-            istringstream iss{s};
-            iss >> x >> y >> item;
-			std::cout << YELLOW << "Coordinate: (" << x << "," << y << ")  Item: " 
-			<< item << "  Effect Code: " << effectCode << RESET << std::endl;
-
-            tempInfo.emplace_back(Info{Coordinate{x, y}, item, effectCode});
-
-			if (item == '@') {
-				PCFloorIndex = floorIndex;
-			}
-			if (i + 1 < tempRecord.size() && tempRecord[i + 1][0] == '|') { // EOF or not an Info line
-				mapInfo.emplace_back(tempInfo);
-                tempInfo.clear();
-                infoLine = false;
-			}
-        }
-
-    }
-	#endif
-
-	#ifndef CUSTOMIZEDREADMAP
 	for (size_t i = 0; i < tempRecord.size(); i++) {
 		s = tempRecord[i];
 		if (index == 0) {
@@ -166,8 +111,9 @@ int main(int argc, char* argv[]) {
 			for (size_t j = 0; j < tempRecord[i].size(); j++) {
 				if (tempRecord[i][j] == '@') {
 					PCFloorIndex = floorIndex;
+					foundPC = true;
 				} else if (tempRecord[i][j] == 'B') {
-					bsFloorIndex = floorIndex;
+					foundBS = true;
 				}
 			}
 		}
@@ -175,13 +121,7 @@ int main(int argc, char* argv[]) {
 		index++;
     }
 
-	#endif
 
-
-	// Debugger
-	// std::cout << YELLOW << "PCFloorIndex: " << PCFloorIndex << RESET << std::endl;
-	//printMaps(maps);
-	//printInfoList(mapInfo);
 
 
 	// Step 2: Call the corresponding constructor to initialize the game Grid
@@ -203,14 +143,14 @@ int main(int argc, char* argv[]) {
 
 
 	int currFloor = 1; // Current floor number
-	if (PCFloorIndex != 6) {
+	if (foundPC) {
 		currFloor = PCFloorIndex;
 	}
-
+ 
 	int barrierFloor = 0;
 	if (foundPC && !foundBS && PCFloorIndex != 5) {
 		std::vector<int> n; 
-		for (int i = bsFloorIndex + 1; i <= 5; i++) {
+		for (int i = PCFloorIndex; i <= 5; i++) {
 			n.emplace_back(i);
 		}
 		std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
@@ -240,12 +180,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Maps size: " << maps.size() << std::endl;
 		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor};
 	} else {
-		#ifdef CUSTOMIZEDREADMAP
-		g = new Grid(maps[PCFloorIndex - 1], mapInfo[PCFloorIndex - 1], seed, pc);
-		#endif
-		#ifndef CUSTOMIZEDREADMAP
 		g = new Grid{maps[PCFloorIndex - 1], seed, pc};
-		#endif
 	}
 	g->printState(currFloor);
 
@@ -351,15 +286,10 @@ int main(int argc, char* argv[]) {
 				seed = std::chrono::system_clock::now().time_since_epoch().count();
 			}
 			*/
-			if (PCFloorIndex == 6) {
+			if (!foundPC) {
 				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
 			} else {
-				#ifdef CUSTOMIZEDREADMAP
-				g = new Grid(maps[currFloor - 1], mapInfo[currFloor - 1], seed, pc);
-				#endif
-				#ifndef CUSTOMIZEDREADMAP
-				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
-				#endif
+				g = new Grid{maps[currFloor - 1], seed, pc};
 			}
 			g->printState(currFloor);
 			continue;
@@ -404,5 +334,3 @@ int main(int argc, char* argv[]) {
 	return 0;
 
 }
-
-
