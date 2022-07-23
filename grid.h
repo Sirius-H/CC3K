@@ -22,7 +22,6 @@ class Grid: public Subject {
     Coordinate StairLocation;
     TextDisplay* td;
 	unsigned seed;
-	double coinVal;	
 	int gameDiffLevel;
 	// 0: easy mode (more gold, NPC 1/2 HP)
 	// 1: medium mode (normal mode)

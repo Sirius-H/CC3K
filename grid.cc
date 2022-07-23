@@ -803,7 +803,7 @@ Grid::Grid(std::vector<std::string>& theFloor, std::vector<Info>& mapInfo, unsig
 
 // Another Constructor (read map)
 // Constructor (loading saved game)
-Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName):seed{seed} {
     gameDiffLevel = 1; // default: normal difficulty level
     #ifdef EASYMODE
     gameDiffLevel = 0;
@@ -872,65 +872,76 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
         std::string s = theFloor[i];
         for (int j = 0; j < w; j++) {
             Coordinate currCdn{i, j};
-            delete theGrid[i][j];
             if (s[j] == '0') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 0);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(0) << std::endl;
                 #endif
             } else if (s[j] == '1') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 1);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(1) << std::endl;
                 #endif
             } else if (s[j] == '2') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 2);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(2) << std::endl;
                 #endif
             } else if (s[j] == '3') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 3);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(3) << std::endl;
                 #endif
             } else if (s[j] == '4') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 4);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(4) << std::endl;
                 #endif
             } else if (s[j] == '5') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Potion(currCdn, 5);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 #ifdef SHOWPOTION
                 std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(5) << std::endl;
                 #endif
             } else if (s[j] == '6') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Treasure(currCdn, 6);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 #ifdef SHOWTREASURE
                 std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 6 << std::endl;
                 #endif
             } else if (s[j] == '7') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Treasure(currCdn, 7);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 #ifdef SHOWTREASURE
                 std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 7 << std::endl;
                 #endif
             } else if (s[j] == '8') {
+                delete theGrid[i][j];
+                
                 theGrid[i][j] = new Treasure(currCdn, 8);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 #ifdef SHOWTREASURE
                 std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 8 << std::endl;
                 #endif
             } else if (s[j] == '9') {
+                delete theGrid[i][j];
                 Treasure *t = new Treasure(currCdn, 9);
                 theGrid[i][j] = t;
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                td->notify(*this);
                 #ifdef SHOWTREASURE
                 std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 9 << std::endl;
                 #endif
@@ -955,9 +966,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                     delete d;
                 }
             } else if (s[j] == 'B') {
+                delete theGrid[i][j];
                 BarrierSuit *b = new BarrierSuit(currCdn);
                 theGrid[i][j] = b;
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                td->notify(*this);
                 bool foundDragon = false;
                 for (int w = -1; w <= 1; w++) {
                     for (int h = -1; h <= 1; h++) {
@@ -980,35 +993,45 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 }
                 theGrid[i][j] = b;
             } else if (s[j] == '@') {
+                delete theGrid[i][j];
                 if (PCName == 'h') {
                     theGrid[i][j] = new Human{currCdn};
+                    race = "Human";
                     #ifdef SHOWPC
                     std::cout << "Human PC created successfully" << std::endl;
                     #endif
                 } else if (PCName == 'o') {
                     theGrid[i][j] = new Orc{currCdn};
+                    race = "Orc";
                     #ifdef SHOWPC
                     std::cout << "Orc PC created successfully" << std::endl;
                     #endif
                 } else if (PCName == 'd') {
                     theGrid[i][j] = new Dwarf{currCdn};
+                    race = "Dwarf";
                     #ifdef SHOWPC
                     std::cout << "Dwarf PC created successfully" << std::endl;
                     #endif
                 } else if (PCName == 'e') {
                     theGrid[i][j] = new Elf{currCdn};
+                    race = "Elf";
                     #ifdef SHOWPC
                     std::cout << "Elf PC created successfully" << std::endl;
                     #endif
                 }
+                PCLocation = currCdn;
                 setState(std::pair<Coordinate, char>{currCdn, '@'});
             } else if (s[j] == '/') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Stair{currCdn};
+                StairLocation = currCdn;
             } else if (s[j] == 'C') {
+                delete theGrid[i][j];
                 theGrid[i][j] = new Compass{currCdn};
                 setState(std::pair<Coordinate, char>{currCdn, 'C'});
                 foundCompass = true;
             } else if (s[j] == 'V') {
+                delete theGrid[i][j];
                 NPC *n = new Vampire(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1017,6 +1040,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'V' << std::endl;
                 #endif
             } else if (s[j] == 'N') {
+                delete theGrid[i][j];
                 NPC *n = new Goblin(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1025,6 +1049,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'N' << std::endl;
                 #endif
             } else if (s[j] == 'X') {
+                delete theGrid[i][j];
                 NPC *n = new Phoenix(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1033,6 +1058,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'X' << std::endl;
                 #endif
             } else if (s[j] == 'W') {
+                delete theGrid[i][j];
                 NPC *n = new Werewolf(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1041,6 +1067,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
                 #endif
             } else if (s[j] == 'T') {
+                delete theGrid[i][j];
                 NPC *n = new Troll(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1049,6 +1076,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
                 std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'T' << std::endl;
                 #endif
             } else if (s[j] == 'M') {
+                delete theGrid[i][j];
                 NPC *n = new Merchant(currCdn);
                 theGrid[i][j] = n;
                 v.emplace_back(n);
@@ -1076,25 +1104,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName) {
     }
     v.clear();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Coordinate& Grid::getPCLocation() {
-    return PCLocation;
-}
-
 
 // Destructor
 Grid::~Grid() {
