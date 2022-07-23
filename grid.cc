@@ -952,7 +952,7 @@ void Grid::updateGrid() {
                         Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j]);
                         drg->notifyObserver();
                         // Debugger
-                        std::cout << "The treasure it guards has been unlocked" << std::endl;
+                        actionLog.emplace_back("The treasure it guards has been unlocked");
                     }
 
                     if (n->getWithCompass()) {
@@ -1021,10 +1021,6 @@ void Grid::updateGrid() {
 
 bool Grid::canMoveTo(Coordinate cdn) { // for PC
     if (theGrid[cdn.x][cdn.y]->canStep() == true) {
-        //debugger
-        if (theGrid[cdn.x][cdn.y]->getType() == "Item") {
-            std::cout << theGrid[cdn.x][cdn.y]->getName() << "has been unlocked!!!" << std::endl;
-        }
         return true;
     } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
         throw std::runtime_error("You should not be moving on to a wall");
