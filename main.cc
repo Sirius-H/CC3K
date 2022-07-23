@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 	// Create new Grid object (game)
 	Grid* g;
 
-	if (PCFloorIndex == 6) {
+	if (!foundPC) {
 		// Debugger
 		std::cout << "Maps size: " << maps.size() << std::endl;
 		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor, &flags};

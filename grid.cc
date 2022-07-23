@@ -634,12 +634,14 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
 
     std::vector<std::vector<Cell*>> tempGrid;
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
-    int h = theFloor.size();
-    int w = theFloor.at(0).size();
+    h = theFloor.size();
+    w = theFloor.at(0).size();
+    std::vector<std::vector<char>> backupMap;
     for (int i = 0; i < h; i++) {
         std::string s = theFloor[i];
         std::vector<Cell*> tempRow1;
         std::vector<Cell*> tempRow2;
+        std::vector<char> backupRow;
         for (int j = 0; j < w; j++) {
             Coordinate currCdn{i, j};
             Cell* ptr1;
@@ -647,27 +649,34 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             if (s[j] == '|') {
                 ptr1 = new Wall{currCdn, 1};
                 ptr2 = new Wall{currCdn, 1};
+                backupRow.emplace_back('|');
             } else if (s[j] == '-') {
                 ptr1 = new Wall{currCdn, 2};
                 ptr2 = new Wall{currCdn, 2};
+                backupRow.emplace_back('-');
             } else if (s[j] == ' ') {
                 ptr1 = new Wall{currCdn, 3};
                 ptr2 = new Wall{currCdn, 3};
+                backupRow.emplace_back(' ');
             } else if (s[j] == '#') {
                 ptr1 = new Passage{currCdn, 1};
                 ptr2 = new Passage{currCdn, 1};
+                backupRow.emplace_back('#');
             } else if (s[j] == '+') {
                 ptr1 = new Passage{currCdn, 2};
                 ptr2 = new Passage{currCdn, 2};
+                backupRow.emplace_back('+');
             } else {
                 ptr1 = new Floor{currCdn};
                 ptr2 = new Floor{currCdn};
+                backupRow.emplace_back('.');
             }
             tempRow1.emplace_back(ptr1);
             tempRow2.emplace_back(ptr2);
         }
         theGrid.emplace_back(tempRow1);
         tempGrid.emplace_back(tempRow2);
+        backupMap.emplace_back(backupRow);
     }
     td = new TextDisplay{theGrid};
 
@@ -862,10 +871,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 }
                 PCLocation = currCdn;
                 setState(std::pair<Coordinate, char>{currCdn, '@'});
-            } else if (s[j] == '/') {
+            } else if (s[j] == '\\') {
                 delete theGrid[i][j];
                 theGrid[i][j] = new Stair{currCdn};
                 StairLocation = currCdn;
+                setState(std::pair<Coordinate, char>{currCdn, '\\'});
             } else if (s[j] == 'C') {
                 delete theGrid[i][j];
                 theGrid[i][j] = new Compass{currCdn};
@@ -878,7 +888,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'V'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'V' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'V' << std::endl;
                 }
             } else if (s[j] == 'N') {
                 delete theGrid[i][j];
@@ -887,7 +897,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'N'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'N' << std::endl;
                 }
             } else if (s[j] == 'X') {
                 delete theGrid[i][j];
@@ -896,7 +906,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'X'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'X' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'X' << std::endl;
                 }
             } else if (s[j] == 'W') {
                 delete theGrid[i][j];
@@ -905,7 +915,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'W'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
                 }
             } else if (s[j] == 'T') {
                 delete theGrid[i][j];
@@ -914,7 +924,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'T'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'T' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'T' << std::endl;
                 }
             } else if (s[j] == 'M') {
                 delete theGrid[i][j];
@@ -923,10 +933,10 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'M'});
                 if (showNPC) {
-                        std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'M' << std::endl;
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'M' << std::endl;
                 }
             } else {
-                setState(std::pair<Coordinate, char>{currCdn, theFloor[i][j]});
+                setState(std::pair<Coordinate, char>{currCdn, backupMap[i][j]});
             }
             td->notify(*this);
             if (showPC) {
@@ -1003,6 +1013,13 @@ void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, s
 
 
 void Grid::updateGrid() {
+    for (auto s : *flags) {
+        if (s == "MOREMONEY") {
+            PC::coin = 999.00;
+        }
+    }
+    std::cout << "h: " << h << std::endl;
+    std::cout << "w:" << w << std::endl;
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == NPC::currInitState) { // NPC state=0 => has not been moved
