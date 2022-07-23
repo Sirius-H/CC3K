@@ -23,6 +23,8 @@ public:
     int getDef() const;
     void setWithCompass(bool b);
     bool getWithCompass() const;
+    void halfHP();
+    void moreAtk();
 };
 
 #endif

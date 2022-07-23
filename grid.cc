@@ -160,17 +160,18 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
 
 // Default Constructor (initialize the game with random NPC/Items)
 Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags): seed{seed}, flags{flags} {
-    gameDiffLevel = 1; // default: normal difficulty level
     int totalNPC = 20;
-	#ifdef EASYMODE
-	gameDiffLevel = 0;
-	#endif
-	#ifdef MEDIUMMODE
-	gameDiffLevel = 1;
-	#endif
-	#ifdef HARDMODE
-	gameDiffLevel = 2;
-	#endif
+    int mode = 0; // -1 easy; 0 normal; 1 hard
+    for (auto s : *flags) {
+        if (s == "EASYMODE") {
+            mode = -1;
+            break;
+        }
+        if (s == "HARDMODE") {
+            mode = 1;
+            break;
+        }
+    }
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     int lineNum = 0;
     std::vector<std::vector<Cell*>> tempGrid;
@@ -389,9 +390,9 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
     // Step 5: Gold
 	int goldPileNum = 10; // Normal Mode
-	if (gameDiffLevel == 0) { // Easy Mode
+	if (mode == -1) { // Easy Mode
 		goldPileNum = 15;
-	} else if (goldPileNum == 2) { // Hard Mode
+	} else if (mode == 1) { // Hard Mode
 		goldPileNum = 5;
 	}
     // Debugger
@@ -454,7 +455,13 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 					} else {
 						Coordinate dragonCdn = treasureNeighbours[randomInt(treasureNeighbours.size(), ++seed)];
 	                    delete theGrid[dragonCdn.x][dragonCdn.y];
-	                    theGrid[dragonCdn.x][dragonCdn.y] = new Dragon{dragonCdn, trs};
+                        Dragon *d = new Dragon{dragonCdn, trs};
+                        if (mode == -1) {
+                            d->halfHP();
+                        } else if (mode == 1) {
+                            d->moreAtk();
+                        }
+	                    theGrid[dragonCdn.x][dragonCdn.y] = d;
 	                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
 	                    td->notify(*this);
                         totalNPC--;
@@ -505,7 +512,13 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
             // Create a Dragon around the BarrierSuit
             delete theGrid[bsNeighbours[0].x][bsNeighbours[0].y];
-            theGrid[bsNeighbours[0].x][bsNeighbours[0].y] = new Dragon{bsNeighbours[0], bs};
+            Dragon *d = new Dragon{bsNeighbours[0], bs};
+            if (mode == -1) {
+                d->halfHP();
+            } else if (mode == 1) {
+                d->moreAtk();
+            }
+            theGrid[bsNeighbours[0].x][bsNeighbours[0].y] = d;
             setState(std::pair<Coordinate, char>{bsNeighbours[0], 'D'});
             td->notify(*this);
             bsNeighbours.clear();
@@ -589,6 +602,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 }
                 td->notify(*this);
                 n->setWithCompass(withCompass);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[x5][y5] = n;
                 break;
             }
@@ -620,17 +638,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
 // Another Constructor (read map)
 // Constructor (loading saved game)
-Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string>* flags): seed{seed}, flags{flags}{
-    gameDiffLevel = 1; // default: normal difficulty level
-    #ifdef EASYMODE
-    gameDiffLevel = 0;
-    #endif
-    #ifdef MEDIUMMODE
-    gameDiffLevel = 1;
-    #endif
-    #ifdef HARDMODE
-    gameDiffLevel = 2;
-    #endif
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string>* flags): seed{seed}, flags{flags} {
 
     std::vector<std::vector<Cell*>> tempGrid;
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
@@ -696,6 +704,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
     bool showTreasure = false;
     bool showPC = false;
     bool showNPC = false;
+    int mode = 0;
     for (auto s : *flags) {
         if (s == "SHOWPOTION") {
             showPotion = true;
@@ -714,6 +723,12 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
         }
         if (s == "MOREMONEY") {
             PC::coin = 9999;
+        }
+        if (s == "EASYMODE") {
+            mode = -1;
+        }
+        if (s == "HARDMODE") {
+            mode = 1;
         }
     }
     bool foundCompass = false;
@@ -800,8 +815,14 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     for (int h = -1; h <= 1; h++) {
                         if (theFloor[i+w][j+h] == 'D') {
                             delete theGrid[i+w][j+h];
-                            theGrid[i+w][j+h] = new Dragon{Coordinate{i+w, j+h}, t};
+                            Dragon *d = new Dragon{Coordinate{i+w, j+h}, t};
                             setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
+                            if (mode == -1) {
+                                d->halfHP();
+                            } else if (mode == 1) {
+                                d->moreAtk();
+                            }
+                            theGrid[i+w][j+h] = d;
                             foundDragon = true;
                             break;
                         }
@@ -826,10 +847,14 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     for (int h = -1; h <= 1; h++) {
                         if (theFloor[i+w][j+h] == 'D') {
                             delete theGrid[i+w][j+h];
-                            theGrid[i+w][j+h] = new Dragon{Coordinate{i+w, j+h}, b};
+                            Dragon *d = new Dragon{Coordinate{i+w, j+h}, b};
                             setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
-                            foundDragon = true;
-                            break;
+                            if (mode == -1) {
+                                d->halfHP();
+                            } else if (mode == 1) {
+                                d->moreAtk();
+                            }
+                            theGrid[i+w][j+h] = d;
                         }
                     }
                     if (foundDragon) {
@@ -884,6 +909,9 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'V') {
                 delete theGrid[i][j];
                 NPC *n = new Vampire(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'V'});
@@ -893,6 +921,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'N') {
                 delete theGrid[i][j];
                 NPC *n = new Goblin(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'N'});
@@ -902,6 +935,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'X') {
                 delete theGrid[i][j];
                 NPC *n = new Phoenix(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'X'});
@@ -911,6 +949,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'W') {
                 delete theGrid[i][j];
                 NPC *n = new Werewolf(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'W'});
@@ -920,6 +963,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'T') {
                 delete theGrid[i][j];
                 NPC *n = new Troll(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'T'});
@@ -929,6 +977,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == 'M') {
                 delete theGrid[i][j];
                 NPC *n = new Merchant(currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
                 theGrid[i][j] = n;
                 v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'M'});

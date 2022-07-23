@@ -44,3 +44,11 @@ void NPC::setWithCompass(bool b) {
 bool NPC::getWithCompass() const {
     return withCompass;
 }
+
+void NPC::halfHP() {
+    HP /= 2;
+}
+
+void NPC::moreAtk() {
+    Atk *= 1.5;
+}
