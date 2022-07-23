@@ -694,6 +694,18 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             showPC = true;
             showNPC = true;
         }
+        if (s == "SHOWTREASURE") {
+            showTreasure = true;
+        }
+        if (s == "SHOWPC") {
+            showPC = true;
+        }
+        if (s == "SHOWNPC") {
+            showNPC = true;
+        }
+        if (s == "MOREMONEY") {
+            PC::coin = 9999;
+        }
     }
     bool foundCompass = false;
     std::vector<NPC*> v;
@@ -1324,7 +1336,7 @@ void Grid::buyPotion(std::string dir) {
     }
     Coordinate l = convertCdn(getPCLocation(), dir);
     if (theGrid[l.x][l.y]->getName() == "Merchant") {
-		std::cout << "Each potion costs 10 coins" << std::endl;
+		std::cout << "Each potion costs 5 coins" << std::endl;
         for (int i = 0; i < 3; i++) {
             int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[i];
             std::cout << "(" << std::to_string(i + 1) << "): " << codeTranslator(effect) << std::endl;
@@ -1334,8 +1346,8 @@ void Grid::buyPotion(std::string dir) {
         while (std::cin >> c) {
             if (c == 's') break;
             if (c == '1' || c == '2' || c == '3') {
-                if (PC::coin >= 10) { // If PC has enough money to buy this potion
-                    PC::coin -= 10;
+                if (PC::coin >= 5) { // If PC has enough money to buy this potion
+                    PC::coin -= 5;
                     int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[c - '1'];
                     dynamic_cast<PC*>(theGrid[x][y])->applyEffect(potionBought);
                     std::cout << "Potion bought successfully." << std::endl;
