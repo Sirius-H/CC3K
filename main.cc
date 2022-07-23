@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					delete g;
-					g = new Grid{maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor};
+					g = new Grid{maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags};
 					
 					g->printState(currFloor);
 				}
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
 			string f;
 			cin >> f;
 			flags.emplace_back(f);
-			std::cout << "New flag: \"" f << "\" has been deployed." << std::endl;
+			std::cout << "New flag: \"" << f << "\" has been deployed." << std::endl;
 			continue;
 		}
 

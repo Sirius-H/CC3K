@@ -159,7 +159,7 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
 
 
 // Default Constructor (initialize the game with random NPC/Items)
-Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags): flagseed{seed}, flags{flags} {
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags): seed{seed}, flags{flags} {
     gameDiffLevel = 1; // default: normal difficulty level
     int totalNPC = 20;
 	#ifdef EASYMODE
@@ -266,7 +266,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         theGrid[x1][y1] = new Human{PCchamber[0]};
         race = "Human";
 
-        for (auto s : flags) {
+        for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Human PC created successfully" << std::endl;
                 break;
@@ -276,7 +276,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     } else if (PCName == 'd') {
         race = "Dwarf";
         theGrid[x1][y1] = new Dwarf{PCchamber[0]};
-        for (auto s : flags) {
+        for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Dwarf PC created successfully" << std::endl;
                 break;
@@ -285,7 +285,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     } else if (PCName == 'e') {
         race = "Elf";
         theGrid[x1][y1] = new Elf{PCchamber[0]};
-        for (auto s : flags) {
+        for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Elf PC created successfully" << std::endl;
                 break;
@@ -294,7 +294,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     } else if (PCName == 'o') {
         race = "Orc";
         theGrid[x1][y1] = new Orc{PCchamber[0]};
-        for (auto s : flags) {
+        for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Orc PC created successfully" << std::endl;
                 break;
@@ -304,7 +304,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     PCLocation = PCchamber[0];
 
     // Debugger
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWPC") {
             std::cout << *td;
             std::cout << "PC generated successfully" << std::endl << std::endl;
@@ -331,7 +331,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     }
 	
     // Debugger
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWSTAIR") {
             std::cout << *td;
             std::cout << ">>> Stair generated" << std::endl<< std::endl;
@@ -341,7 +341,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     
     // Step 4: potion generations
     // Debugger
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWPOTION") {
             std::cout << "### Potion effect code: 0-Restore Health; 1-Boost Atk; 2-Boost Def; 3-Poison Health; 4-Wound Atk; 5; Wound Def ###" << std::endl << std::endl;
             break;
@@ -365,7 +365,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
             theGrid[x3][y3] = new Potion{potionChamber[i], randomPotionEffect};
             setState(std::pair<Coordinate, char>{potionChamber[i], 'P'});
             // Debugger
-            for (auto s : flags) {
+            for (auto s : *flags) {
                 if (s == "SHOWPOTION") {
                     std::cout << "Generated Potion: Coordinate: " << potionChamber[i] << "  Effect: " << codeTranslator(randomPotionEffect) << std::endl;
                     break;
@@ -378,7 +378,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     }
     // Debugger
 
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWPOTION") {
             std::cout << *td;
             std::cout << ">>> Potion generated" << std::endl << std::endl;
@@ -395,7 +395,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 		goldPileNum = 5;
 	}
     // Debugger
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWTREASURE") {
             std::cout << "### Treasure code:  6-Normal gold pile;  7-Small horde;  8-Merchant horde;  9-Dragon horde" << std::endl << std::endl;
             break;
@@ -423,7 +423,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 Treasure* trs = new Treasure{goldChamber[i], treasure};
                 theGrid[x4][y4] = trs;
                 // Debugger
-                for (auto s : flags) {
+                for (auto s : *flags) {
                     if (s == "SHOWTREASURE") {
                         std::cout << "Generating treasure:  Coordinate: " << goldChamber[i] << "  Treasure code: " << treasure << std::endl;
                         break;
@@ -467,7 +467,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         goldChamber.clear();
     }
     // Debugger
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWTREASURE") {
             std::cout << *td;
             std::cout << ">>> Treasure generated" << std::endl;
@@ -519,11 +519,10 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     bool withCompass = false;
 
     bool showNPC = false;
-    
-    for (auto s : flags) {
+    char type;
+    for (auto s : *flags) {
         if (s == "SHOWNPC") {
             std::cout << "### NPC code:  W(werewolf);  V(vampire);  N(Goblin);  T(troll);  X(phoenix);  M(merchant)" << std::endl << std::endl;
-            char type;
             showNPC = true;
             break;
         }
@@ -621,7 +620,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
 // Another Constructor (read map)
 // Constructor (loading saved game)
-Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName):seed{seed} {
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string>* flags): seed{seed}, flags{flags}{
     gameDiffLevel = 1; // default: normal difficulty level
     #ifdef EASYMODE
     gameDiffLevel = 0;
@@ -688,7 +687,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName):seed{
     bool showTreasure = false;
     bool showPC = false;
     bool showNPC = false;
-    for (auto s : flags) {
+    for (auto s : *flags) {
         if (s == "SHOWPOTION") {
             showPotion = true;
             showTreasure = true;
