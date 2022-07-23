@@ -31,7 +31,7 @@ void PC::applyEffect(int effect) {
         std::cout << "Found a Restore Health potion" << std::endl;
         if (HP + 10 > maxHP) {
             HP = maxHP;
-            throw std::runtime_error("Exceeding max HP, restore to max HP");
+            std::cout <<"Maximum HP reached, restoring to max HP" << std::endl;
         } else {
             HP += 10;
         }
