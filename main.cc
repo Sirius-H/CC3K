@@ -82,16 +82,20 @@ int main(int argc, char* argv[]) {
 	}
 	cin.clear();
 
-
     string startLine;
     vector<vector<string>> maps;
-    vector<vector<Info>> mapInfo; // Info: {Coordinate cdn, char itemName, int effectCode}
     int floorIndex = 0;
     int PCFloorIndex = 6;
+	int bsFloorIndex = 6;
+	bool foundPC = false;
+	bool foundBS = false;
     int index = 0;
     vector<string> tempMap;
-    vector<Info> tempInfo;
-    bool infoLine = false;
+
+	#ifdef CUSTOMIZEDREADMAP
+	vector<vector<Info>> mapInfo; // Info: {Coordinate cdn, char itemName, int effectCode}
+	vector<Info> tempInfo;
+	bool infoLine = false;
     for (size_t i = 0; i < tempRecord.size(); i++) {
 		s = tempRecord[i];
         if (!infoLine) { // If this is a map layout line
@@ -139,6 +143,39 @@ int main(int argc, char* argv[]) {
         }
 
     }
+	#endif
+	#ifndef CUSTOMIZEDREADMAP
+	for (size_t i = 0; i < tempRecord.size(); i++) {
+		s = tempRecord[i];
+		if (index == 0) {
+			startLine = s;
+		} else if (s == startLine) {
+			tempMap.emplace_back(s);
+			maps.emplace_back(tempMap);
+			tempMap.clear();
+			floorIndex++;
+			index = 0;
+			if (foundBS && !foundPC) {
+				foundBS = false;
+			}
+			continue;
+		}
+
+		if (!foundPC) {
+			for (size_t j = 0; j < tempRecord[i].size(); j++) {
+				if (tempRecord[i][j] == '@') {
+					PCFloorIndex = floorIndex;
+				} else if (tempRecord[i][j] == 'B') {
+					bsFloorIndex = floorIndex;
+				}
+			}
+		}
+		tempMap.emplace_back(s);
+		index++;
+    }
+
+	#endif
+
 
 	// Debugger
 	// std::cout << YELLOW << "PCFloorIndex: " << PCFloorIndex << RESET << std::endl;
@@ -169,13 +206,24 @@ int main(int argc, char* argv[]) {
 		currFloor = PCFloorIndex;
 	}
 
-	std::vector<int> n;
-	for (int i = 1; i <= 5; i++) {
-		n.emplace_back(i);
+	int barrierFloor = 0;
+	if (foundPC && !foundBS && PCFloorIndex != 5) {
+		std::vector<int> n; 
+		for (int i = bsFloorIndex + 1; i <= 5; i++) {
+			n.emplace_back(i);
+		}
+		std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+		barrierFloor = n[0];
+		n.clear();
+	} else if (!foundPC) {
+		std::vector<int> n; 
+		for (int i = 1; i <= 5; i++) {
+			n.emplace_back(i);
+		}
+		std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+		barrierFloor = n[0];
+		n.clear();
 	}
-	std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
-	int barrierFloor = n[0];
-	n.clear();
 
 	// Debugger
 	//std::cout << "Barrier Suit floor: " << barrierFloor << std::endl;
@@ -191,9 +239,13 @@ int main(int argc, char* argv[]) {
 		std::cout << "Maps size: " << maps.size() << std::endl;
 		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor};
 	} else {
+		#ifdef CUSTOMIZEDREADMAP
 		g = new Grid(maps[PCFloorIndex - 1], mapInfo[PCFloorIndex - 1], seed, pc);
+		#endif
+		#ifndef CUSTOMIZEDREADMAP
+		g = new Grid{maps[PCFloorIndex - 1], seed, pc};
+		#endif
 	}
-
 	g->printState(currFloor);
 
 
@@ -221,16 +273,8 @@ int main(int argc, char* argv[]) {
 					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					delete g;
-
 					g = new Grid{maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor};
-					/*
-					if (PCFloorIndex == 6) {
-						g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
-					} else {
-						g = new Grid(maps[currFloor - 1], mapInfo[currFloor - 1], seed, pc);
-					}
-					*/
-
+					
 					g->printState(currFloor);
 				}
 			} catch (runtime_error& errorMsg) {
@@ -309,7 +353,12 @@ int main(int argc, char* argv[]) {
 			if (PCFloorIndex == 6) {
 				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
 			} else {
+				#ifdef CUSTOMIZEDREADMAP
 				g = new Grid(maps[currFloor - 1], mapInfo[currFloor - 1], seed, pc);
+				#endif
+				#ifndef CUSTOMIZEDREADMAP
+				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor};
+				#endif
 			}
 			g->printState(currFloor);
 			continue;

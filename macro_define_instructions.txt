@@ -11,6 +11,9 @@ SHOWSTAIR - show the map with pc, stair generated
 SHOWPOTION - show the map with pc, stair, potions (including their location and type) generated
 SHOWTREASURE - show the map with pc, stair, potions and treasures (including their location and type) generated
 
+READMAP1 - our method of reading in floors (read in extra info lines (see below))
+READMAP2 - university-defined read in method (potions are expressed in numbers in maps)
+
 
 
 ####### Floor.txt Requirement:

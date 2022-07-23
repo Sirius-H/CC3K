@@ -33,8 +33,9 @@ class Grid: public Subject {
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
 public:
     std::vector<std::string> actionLog;
-    Grid(std::vector<std::string>& theFloor, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h', bool barrierSuit = false);
-    Grid(std::vector<std::string>& theFloor, std::vector<Info>& mapInfo, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(), char PCName = 'h');
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit);
+    Grid(std::vector<std::string>& theFloor, std::vector<Info>& mapInfo, unsigned seed, char PCName);
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName);
     void init(char c);
     Coordinate& getPCLocation();
     void updatePlayer();

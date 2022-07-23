@@ -7,7 +7,7 @@ NPC::NPC(Coordinate cdn) : Cell{cdn} { }
 
 int NPC::getDefence() const { return Def; }
 
-int NPC::attack(int PCDefence) const { return ceil((double)100 / (100 + PCDefence)) * Atk; }
+int NPC::attack(int PCDefence) const { return ceil((double)100 / (100 + PCDefence) * Atk); }
 
 int NPC::attacked(int dmg) { // returns the actual damage to NPC
     int actualDmg = dmg;
@@ -38,4 +38,9 @@ int NPC::getDef() const { return Def; }
 
 void NPC::setWithCompass(bool b) {
     withCompass = b;
+}
+
+
+bool NPC::getWithCompass() const {
+    return withCompass;
 }

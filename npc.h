@@ -22,6 +22,7 @@ public:
     int getAtk() const;
     int getDef() const;
     void setWithCompass(bool b);
+    bool getWithCompass() const;
 };
 
 #endif
