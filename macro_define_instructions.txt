@@ -13,6 +13,8 @@ SHOWTREASURE - show the map with pc, stair, potions and treasures (including the
 
 CUSTOMIZEDREADMAP - our method of reading in floors (read in extra info lines (see below))
 
+MOREMONEY - start with 9999 coin
+
 
 
 ####### Floor.txt Requirement:

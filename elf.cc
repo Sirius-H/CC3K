@@ -19,7 +19,7 @@ void Elf::applyEffect(int effect) {
     } else if (effect == 1 || effect == 4) { // Boost Atk & Wound Atk (negative potions have positive effects)
         potionAtkEffect += 5;
     } else if (effect == 2 || effect == 5) { // Boost Def & Wound Def (negative potions have positive effects)
-        pottionDefEffect += 5;
+        potionDefEffect += 5;
     } else if (effect == 6) { // Normal gold pile
         coin += 1;
     } else if (effect == 7) { // Small Horde

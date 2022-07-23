@@ -19,7 +19,7 @@ void Orc::applyEffect(int effect) {
     } else if (effect == 1) { // Boost Atk
         potionAtkEffect += 5;
     } else if (effect == 2) { // Boost Def
-        pottionDefEffect += 5;
+        potionDefEffect += 5;
     } else if (effect == 3) { // Poison Health
         if (HP - 10 <= 0) {
             HP = 0;
@@ -29,7 +29,7 @@ void Orc::applyEffect(int effect) {
     } else if (effect == 4) { // Wound Atk
         potionAtkEffect -= 5;
     } else if (effect == 5) { // Wound Def
-        pottionDefEffect -= 5;
+        potionDefEffect -= 5;
     } else if (effect == 6) { // Normal gold pile
         coin += (double)1 / 2;
         totalCoin += (double)1 / 2;

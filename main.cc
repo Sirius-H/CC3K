@@ -144,6 +144,7 @@ int main(int argc, char* argv[]) {
 
     }
 	#endif
+
 	#ifndef CUSTOMIZEDREADMAP
 	for (size_t i = 0; i < tempRecord.size(); i++) {
 		s = tempRecord[i];
