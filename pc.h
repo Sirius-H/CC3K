@@ -12,7 +12,7 @@ protected:
     bool withCompass = false;
     bool withBarrierSuit = false;
     int potionAtkEffect = 0;
-    int pottionDefEffect = 0;
+    int potionDefEffect = 0;
     int moved = 0;
 public:
     static int onTile; // -1 if on floor; 1 if on #; 2 if on +

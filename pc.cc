@@ -42,7 +42,7 @@ void PC::applyEffect(int effect) {
     } else if (effect == 2) { // Boost Def
         // Debugger
         std::cout << "Found a Boost Def potion" << std::endl;
-        pottionDefEffect += 5;
+        potionDefEffect += 5;
     } else if (effect == 3) { // Poison Health
         // Debugger
         std::cout << "Found a Poison Health potion" << std::endl;
@@ -55,10 +55,16 @@ void PC::applyEffect(int effect) {
         // Debugger
         std::cout << "Found a Wound Atk potion" << std::endl;
         potionAtkEffect -= 5;
+        if (Atk - potionAtkEffect < 0) {
+            potionAtkEffect = -Atk;
+        }
     } else if (effect == 5) { // Wound Def
         // Debugger
         std::cout << "Found a Wound Def potion" << std::endl;
-        pottionDefEffect -= 5;
+        potionDefEffect -= 5;
+        if (Def - potionDefEffect < 0) {
+            potionDefEffect = -Def;
+        }
     } else if (effect == 6) { // Normal gold pile
         // Debugger
         std::cout << "Found a Normal gold pile" << std::endl;
@@ -96,7 +102,7 @@ int PC::state() { return moved; }
 
 int PC::getHP() const { return HP; }
 int PC::getAtk() const { return Atk + potionAtkEffect; }
-int PC::getDef() const { return Def + pottionDefEffect; }
+int PC::getDef() const { return Def + potionDefEffect; }
 bool PC::getWithBarrierSuit() const { return withBarrierSuit; }
 
 void PC::resetCoin() {
