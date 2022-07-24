@@ -1,12 +1,13 @@
 #include <vector>
 #include <iostream>
+#include <memory>
 #include "textdisplay.h"
 #include "cell.h"
 #include "subject.h"
 #include "coordinate.h"
 #include "termcodes.h"
 
-TextDisplay::TextDisplay(std::vector<std::vector<Cell*>>& g) {
+TextDisplay::TextDisplay(std::vector<std::vector<std::shared_ptr<Cell>>>& g) {
     int height = g.size();
     for (int i = 0; i < height; i++) {
         int width = g[i].size();

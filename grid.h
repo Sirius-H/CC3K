@@ -1,5 +1,6 @@
 #ifndef __GRID_H_
 #define __GRID_H_
+#include <memory>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -14,20 +15,20 @@ class Cell;
 class TextDisplay;
 
 class Grid: public Subject {
-    std::vector<std::vector<Cell*>> theGrid;
+    std::vector<std::vector<std::shared_ptr<Cell>>> theGrid;
     std::vector<std::vector<Coordinate>> chambers;
     int h, w;
     std::string race;
     Coordinate PCLocation;
     Coordinate StairLocation;
-    TextDisplay* td;
+    std::shared_ptr<TextDisplay> td;
 	unsigned seed;
 	int gameDiffLevel;
 	// 0: easy mode (more gold, NPC 1/2 HP)
 	// 1: medium mode (normal mode)
 	// 2: hard mode (less gold, NPC 1.5X Atk) (to be implemented)
 
-    void addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
+    void addChamber(std::vector<std::vector<std::shared_ptr<Cell>>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
     std::vector<Coordinate> countNeighbour(Coordinate& cdn);
     void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
     std::vector<std::string> *flags;

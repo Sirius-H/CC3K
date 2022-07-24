@@ -182,14 +182,14 @@ int main(int argc, char* argv[]) {
 	//std::cout << "PC: " << pc << std::endl;
 
 	// Create new Grid object (game)
-	Grid* g;
+	std::shared_ptr<Grid> g;
 
 	if (!foundPC) {
 		// Debugger
 		std::cout << "Maps size: " << maps.size() << std::endl;
-		g = new Grid{maps[0], seed, pc, currFloor == barrierFloor, &flags};
+		g = std::make_shared<Grid> (maps[0], seed, pc, currFloor == barrierFloor, &flags);
 	} else {
-		g = new Grid{maps[PCFloorIndex - 1], seed, pc, &flags};
+		g = std::make_shared<Grid> (maps[PCFloorIndex - 1], seed, pc, &flags);
 	}
 	g->printState(currFloor);
 
@@ -217,8 +217,7 @@ int main(int argc, char* argv[]) {
 					currFloor += 1;
 					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
-					delete g;
-					g = new Grid{maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags};
+					g = std::make_shared<Grid> (maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags);
 					
 					g->printState(currFloor);
 				}
@@ -275,7 +274,6 @@ int main(int argc, char* argv[]) {
 			std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
 			int barrierFloor = n[0];
 			n.clear();
-			delete g;
 			printIntroMsg();
 			// Player character reselection
 			while (cin >> pc) {
@@ -296,9 +294,9 @@ int main(int argc, char* argv[]) {
 			}
 			*/
 			if (!foundPC) {
-				g = new Grid{maps[currFloor - 1], seed, pc, currFloor == barrierFloor, &flags};
+				g = std::make_shared<Grid> (maps[currFloor - 1], seed, pc, currFloor == barrierFloor, &flags);
 			} else {
-				g = new Grid{maps[currFloor - 1], seed, pc, &flags};
+				g = std::make_shared<Grid> (maps[currFloor - 1], seed, pc, &flags);
 			}
 			g->printState(currFloor);
 			continue;
@@ -368,7 +366,6 @@ int main(int argc, char* argv[]) {
 
 	}
 
-	delete g;
 	return 0;
 
 }

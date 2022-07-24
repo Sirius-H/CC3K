@@ -1,3 +1,4 @@
+#include <memory>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -154,10 +155,6 @@ int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since
 
 
 
-
-
-
-
 // Default Constructor (initialize the game with random NPC/Items)
 Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags): seed{seed}, flags{flags} {
     int totalNPC = 20;
@@ -174,35 +171,35 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     }
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     int lineNum = 0;
-    std::vector<std::vector<Cell*>> tempGrid;
+    std::vector<std::vector<std::shared_ptr<Cell>>> tempGrid;
 
     for (size_t i = 0; i < theFloor.size(); i++) {
         std::string s = theFloor[i];
-        std::vector<Cell*> tempRow1;
-        std::vector<Cell*> tempRow2;
+        std::vector<std::shared_ptr<Cell>> tempRow1;
+        std::vector<std::shared_ptr<Cell>> tempRow2;
         int len = s.length();
         for (int i = 0; i < len; i++) {
             Coordinate currCdn{lineNum, i};
-            Cell* ptr1;
-            Cell* ptr2;
+            std::shared_ptr<Cell> ptr1;
+            std::shared_ptr<Cell> ptr2;
             if (s[i] == '|') {
-                ptr1 = new Wall{currCdn, 1};
-                ptr2 = new Wall{currCdn, 1};
+                ptr1 = std::make_shared<Wall> (currCdn, 1);
+                ptr2 = std::make_shared<Wall> (currCdn, 1);
             } else if (s[i] == '-') {
-                ptr1 = new Wall{currCdn, 2};
-                ptr2 = new Wall{currCdn, 2};
+                ptr1 = std::make_shared<Wall> (currCdn, 2);
+                ptr2 = std::make_shared<Wall> (currCdn, 2);
             } else if (s[i] == ' ') {
-                ptr1 = new Wall{currCdn, 3};
-                ptr2 = new Wall{currCdn, 3};
+                ptr1 = std::make_shared<Wall> (currCdn, 3);
+                ptr2 = std::make_shared<Wall> (currCdn, 3);
             } else if (s[i] == '.') {
-                ptr1 = new Floor{currCdn};
-                ptr2 = new Floor{currCdn};
+                ptr1 = std::make_shared<Floor> (currCdn);
+                ptr2 = std::make_shared<Floor> (currCdn);
             } else if (s[i] == '#') {
-                ptr1 = new Passage{currCdn, 1};
-                ptr2 = new Passage{currCdn, 1};
+                ptr1 = std::make_shared<Passage> (currCdn, 1);
+                ptr2 = std::make_shared<Passage> (currCdn, 1);
             } else if (s[i] == '+') {
-                ptr1 = new Passage{currCdn, 2};
-                ptr2 = new Passage{currCdn, 2};
+                ptr1 = std::make_shared<Passage> (currCdn, 2);
+                ptr2 = std::make_shared<Passage> (currCdn, 2);
             } else {
                 // Debugger
                 //std::cout << "this line should not be printed" << std::endl;
@@ -214,7 +211,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         theGrid.emplace_back(tempRow1);
         tempGrid.emplace_back(tempRow2);
     }
-    td = new TextDisplay{theGrid};
+    td = std::make_shared<TextDisplay> (theGrid);
     // Debugger
     //std::cout << *td;
 
@@ -235,16 +232,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         }
     }
 
-    int height = tempGrid.size();
-    for (int i = 0; i < height; i++) {
-        int width = tempGrid[i].size();
-        for (int j = 0; j < width; j++) {
-            delete tempGrid[i][j];
-        }
-        tempGrid[i].clear();
-    }
-    tempGrid.clear();
-
     
     // Step 2: Spawn PC
     std::default_random_engine rng{seed};
@@ -262,9 +249,8 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
     int x1 = PCchamber.at(0).x;
     int y1 = PCchamber.at(0).y;
-    delete theGrid.at(x1).at(y1);
     if (PCName == 'h') {
-        theGrid[x1][y1] = new Human{PCchamber[0]};
+        theGrid[x1][y1] = std::make_shared<Human> (PCchamber[0]);
         race = "Human";
 
         for (auto s : *flags) {
@@ -276,7 +262,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
     } else if (PCName == 'd') {
         race = "Dwarf";
-        theGrid[x1][y1] = new Dwarf{PCchamber[0]};
+        theGrid[x1][y1] = std::make_shared<Dwarf> (PCchamber[0]);
         for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Dwarf PC created successfully" << std::endl;
@@ -285,7 +271,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         }
     } else if (PCName == 'e') {
         race = "Elf";
-        theGrid[x1][y1] = new Elf{PCchamber[0]};
+        theGrid[x1][y1] = std::make_shared<Elf> (PCchamber[0]);
         for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Elf PC created successfully" << std::endl;
@@ -294,7 +280,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         }
     } else if (PCName == 'o') {
         race = "Orc";
-        theGrid[x1][y1] = new Orc{PCchamber[0]};
+        theGrid[x1][y1] = std::make_shared<Orc> (PCchamber[0]);
         for (auto s : *flags) {
             if (s == "SHOWPC") {
                 std::cout << "Orc PC created successfully" << std::endl;
@@ -321,8 +307,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         int x2 = stairChamber[i].x;
         int y2 = stairChamber[i].y;
         if (theGrid[x2][y2]->getName() == "Floor") {
-            delete theGrid.at(x2).at(y2);
-            theGrid[x2][y2] = new Stair{stairChamber[i]};
+            theGrid[x2][y2] = std::make_shared<Stair> (stairChamber[i]);
             StairLocation = stairChamber[i];
             // Debugger
             setState(std::pair<Coordinate, char>{stairChamber[i], '\\'});
@@ -361,9 +346,8 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
             }
             int x3 = potionChamber[i].x;
             int y3 = potionChamber[i].y;
-            delete theGrid[x3][y3];
             int randomPotionEffect = randomInt(6, ++seed);
-            theGrid[x3][y3] = new Potion{potionChamber[i], randomPotionEffect};
+            theGrid[x3][y3] = std::make_shared<Potion> (potionChamber[i], randomPotionEffect);
             setState(std::pair<Coordinate, char>{potionChamber[i], 'P'});
             // Debugger
             for (auto s : *flags) {
@@ -411,7 +395,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 			if (theGrid[goldChamber[i].x][goldChamber[i].y]->getName() == "Floor") {
                 int x4 = goldChamber[i].x;
                 int y4 = goldChamber[i].y;
-                delete theGrid[x4][y4];
                 int ri = randomInt(8, ++seed);
                 int treasure = 0;
                 if (ri <= 4) {
@@ -421,7 +404,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 } else if (ri > 5) {
                     treasure = 7;
                 }
-                Treasure* trs = new Treasure{goldChamber[i], treasure};
+                std::shared_ptr<Treasure> trs = std::make_shared<Treasure>(goldChamber[i], treasure);
                 theGrid[x4][y4] = trs;
                 // Debugger
                 for (auto s : *flags) {
@@ -450,12 +433,10 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 					if ((int)(treasureNeighbours.size()) == 0) {
 						// Debugger
 						std::cout << "No place to put the dragon, treasure deleted" << std::endl;
-						delete theGrid[x4][y4];
-						theGrid[x4][y4] = new Floor{Coordinate{x4, y4}};
+						theGrid[x4][y4] = std::make_shared<Floor> (Coordinate{x4, y4});
 					} else {
 						Coordinate dragonCdn = treasureNeighbours[randomInt(treasureNeighbours.size(), ++seed)];
-	                    delete theGrid[dragonCdn.x][dragonCdn.y];
-                        Dragon *d = new Dragon{dragonCdn, trs};
+                        std::shared_ptr<Dragon> d = std::make_shared<Dragon> (dragonCdn, trs.get());
                         if (mode == -1) {
                             d->halfHP();
                         } else if (mode == 1) {
@@ -504,15 +485,13 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 continue;
             }
             // Creating BarrierSuit in the Grid
-            delete theGrid[x5][y5];
-            BarrierSuit* bs = new BarrierSuit{bsChamber[i]};
+            std::shared_ptr<BarrierSuit> bs = std::make_shared<BarrierSuit> (bsChamber[i]);
             theGrid[x5][y5] = bs;
             setState(std::pair<Coordinate, char>{bsChamber[i], 'B'});
             td->notify(*this);
 
             // Create a Dragon around the BarrierSuit
-            delete theGrid[bsNeighbours[0].x][bsNeighbours[0].y];
-            Dragon *d = new Dragon{bsNeighbours[0], bs};
+            std::shared_ptr<Dragon> d = std::make_shared<Dragon> (bsNeighbours[0], bs.get());
             if (mode == -1) {
                 d->halfHP();
             } else if (mode == 1) {
@@ -553,41 +532,40 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
             if (theGrid[npcChamber[i].x][npcChamber[i].y]->getName() == "Floor") {
                 int x5 = npcChamber[i].x;
                 int y5 = npcChamber[i].y;
-                delete theGrid[x5][y5];
                 int ri = randomInt(18, ++seed);
-                NPC *n;
+                std::shared_ptr<NPC> n;
                 if (ri < 4) {
-                    n = new Werewolf(npcChamber[i]);
+                    n = std::make_shared<Werewolf> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'W'});
                     if (showNPC) {
                         type = 'W';
                     }
                 } else if (ri < 7) {
-                    n = new Vampire(npcChamber[i]);
+                    n = std::make_shared<Vampire> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'V'});
                     if (showNPC) {
                         type = 'V';
                     }
                 } else if (ri < 12) {
-                    n = new Goblin(npcChamber[i]);
+                    n = std::make_shared<Goblin> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'N'});
                     if (showNPC) {
                         type = 'N';
                     }
                 } else if (ri < 14) {
-                    n = new Troll(npcChamber[i]);
+                    n = std::make_shared<Troll> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'T'});
                     if (showNPC) {
                         type = 'T';
                     }
                 } else if (ri < 16) {
-                    n = new Phoenix(npcChamber[i]);
+                    n = std::make_shared<Phoenix> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'X'});
                     if (showNPC) {
                         type = 'X';
                     }
                 } else if (ri < 18) {
-                    n = new Merchant(npcChamber[i]);
+                    n = std::make_shared<Merchant> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'M'});
                     if (showNPC) {
                         type = 'M';
@@ -640,43 +618,43 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 // Constructor (loading saved game)
 Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string>* flags): seed{seed}, flags{flags} {
 
-    std::vector<std::vector<Cell*>> tempGrid;
+    std::vector<std::vector<std::shared_ptr<Cell>>> tempGrid;
     // Step 1: create an empty grid of cells, create and connect with TextDisplay
     h = theFloor.size();
     w = theFloor.at(0).size();
     std::vector<std::vector<char>> backupMap;
     for (int i = 0; i < h; i++) {
         std::string s = theFloor[i];
-        std::vector<Cell*> tempRow1;
-        std::vector<Cell*> tempRow2;
+        std::vector<std::shared_ptr<Cell>> tempRow1;
+        std::vector<std::shared_ptr<Cell>> tempRow2;
         std::vector<char> backupRow;
         for (int j = 0; j < w; j++) {
             Coordinate currCdn{i, j};
-            Cell* ptr1;
-            Cell* ptr2;
+            std::shared_ptr<Cell> ptr1;
+            std::shared_ptr<Cell> ptr2;
             if (s[j] == '|') {
-                ptr1 = new Wall{currCdn, 1};
-                ptr2 = new Wall{currCdn, 1};
+                ptr1 = std::make_shared<Wall> (currCdn, 1);
+                ptr2 = std::make_shared<Wall> (currCdn, 1);
                 backupRow.emplace_back('|');
             } else if (s[j] == '-') {
-                ptr1 = new Wall{currCdn, 2};
-                ptr2 = new Wall{currCdn, 2};
+                ptr1 = std::make_shared<Wall> (currCdn, 2);
+                ptr2 = std::make_shared<Wall> (currCdn, 2);
                 backupRow.emplace_back('-');
             } else if (s[j] == ' ') {
-                ptr1 = new Wall{currCdn, 3};
-                ptr2 = new Wall{currCdn, 3};
+                ptr1 = std::make_shared<Wall> (currCdn, 3);
+                ptr2 = std::make_shared<Wall> (currCdn, 3);
                 backupRow.emplace_back(' ');
             } else if (s[j] == '#') {
-                ptr1 = new Passage{currCdn, 1};
-                ptr2 = new Passage{currCdn, 1};
+                ptr1 = std::make_shared<Passage> (currCdn, 1);
+                ptr2 = std::make_shared<Passage> (currCdn, 1);
                 backupRow.emplace_back('#');
             } else if (s[j] == '+') {
-                ptr1 = new Passage{currCdn, 2};
-                ptr2 = new Passage{currCdn, 2};
+                ptr1 = std::make_shared<Passage> (currCdn, 2);
+                ptr2 = std::make_shared<Passage> (currCdn, 2);
                 backupRow.emplace_back('+');
             } else {
-                ptr1 = new Floor{currCdn};
-                ptr2 = new Floor{currCdn};
+                ptr1 = std::make_shared<Floor> (currCdn);
+                ptr2 = std::make_shared<Floor> (currCdn);
                 backupRow.emplace_back('.');
             }
             tempRow1.emplace_back(ptr1);
@@ -686,18 +664,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
         tempGrid.emplace_back(tempRow2);
         backupMap.emplace_back(backupRow);
     }
-    td = new TextDisplay{theGrid};
-
-    // Generate Chambers
-    int height = tempGrid.size();
-    for (int i = 0; i < height; i++) {
-        int width = tempGrid[i].size();
-        for (int j = 0; j < width; j++) {
-            delete tempGrid[i][j];
-        }
-        tempGrid[i].clear();
-    }
-    tempGrid.clear();
+    td = std::make_shared<TextDisplay> (theGrid);
 
     // Step 2: Generate PC/NPC/Items
     bool showPotion = false;
@@ -732,78 +699,68 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
         }
     }
     bool foundCompass = false;
-    std::vector<NPC*> v;
+    std::vector<std::shared_ptr<NPC>> v;
     for (int i = 0; i < h; i++) {
         std::string s = theFloor[i];
         for (int j = 0; j < w; j++) {
             Coordinate currCdn{i, j};
             if (s[j] == '0') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 0);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 0);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(0) << std::endl;
                 }
             } else if (s[j] == '1') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 1);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 1);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(1) << std::endl;
                 }
             } else if (s[j] == '2') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 2);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 2);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(2) << std::endl;
                 }
             } else if (s[j] == '3') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 3);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 3);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(3) << std::endl;
                 }
             } else if (s[j] == '4') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 4);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 4);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(4) << std::endl;
                 }
             } else if (s[j] == '5') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Potion(currCdn, 5);
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 5);
                 setState(std::pair<Coordinate, char>{currCdn, 'P'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(5) << std::endl;
                 }
             } else if (s[j] == '6') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Treasure(currCdn, 6);
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 6);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 if (showPotion) {
                     std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(6) << std::endl;
                 }
             } else if (s[j] == '7') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Treasure(currCdn, 7);
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 7);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 if (showTreasure) {
                     std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 7 << std::endl;
                 }
             } else if (s[j] == '8') {
-                delete theGrid[i][j];
                 
-                theGrid[i][j] = new Treasure(currCdn, 8);
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 8);
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 if (showTreasure) {
                     std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 8 << std::endl;
                 }
             } else if (s[j] == '9') {
-                delete theGrid[i][j];
-                Treasure *t = new Treasure(currCdn, 9);
+                std::shared_ptr<Treasure> t = std::make_shared<Treasure> (currCdn, 9);
                 theGrid[i][j] = t;
                 setState(std::pair<Coordinate, char>{currCdn, 'G'});
                 td->notify(*this);
@@ -814,8 +771,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 for (int w = -1; w <= 1; w++) {
                     for (int h = -1; h <= 1; h++) {
                         if (theFloor[i+w][j+h] == 'D') {
-                            delete theGrid[i+w][j+h];
-                            Dragon *d = new Dragon{Coordinate{i+w, j+h}, t};
+                            std::shared_ptr<Dragon> d = std::make_shared<Dragon>(Coordinate{i+w, j+h}, t.get());
                             setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
                             if (mode == -1) {
                                 d->halfHP();
@@ -832,13 +788,11 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     }
                 }
                 if (!foundDragon) {
-                    Dragon *d = new Dragon{Coordinate{0, 0}, t};
+                    std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{0, 0}, t.get());
                     d->notifyObserver();
-                    delete d;
                 }
             } else if (s[j] == 'B') {
-                delete theGrid[i][j];
-                BarrierSuit *b = new BarrierSuit(currCdn);
+                std::shared_ptr<BarrierSuit> b = std::make_shared<BarrierSuit> (currCdn);
                 theGrid[i][j] = b;
                 setState(std::pair<Coordinate, char>{currCdn, 'B'});
                 td->notify(*this);
@@ -846,8 +800,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 for (int w = -1; w <= 1; w++) {
                     for (int h = -1; h <= 1; h++) {
                         if (theFloor[i+w][j+h] == 'D') {
-                            delete theGrid[i+w][j+h];
-                            Dragon *d = new Dragon{Coordinate{i+w, j+h}, b};
+                            std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{i+w, j+h}, b.get());
                             setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
                             if (mode == -1) {
                                 d->halfHP();
@@ -862,33 +815,31 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     }
                 }
                 if (!foundDragon) {
-                    Dragon *d = new Dragon{Coordinate{0, 0}, b};
+                    std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{0, 0}, b.get());
                     d->notifyObserver();
-                    delete d;
                 }
                 theGrid[i][j] = b;
             } else if (s[j] == '@') {
-                delete theGrid[i][j];
                 if (PCName == 'h') {
-                    theGrid[i][j] = new Human{currCdn};
+                    theGrid[i][j] = std::make_shared<Human> (currCdn);
                     race = "Human";
                     if (showPC) {
                         std::cout << "Human PC created successfully" << std::endl;
                     }
                 } else if (PCName == 'o') {
-                    theGrid[i][j] = new Orc{currCdn};
+                    theGrid[i][j] = std::make_shared<Orc> (currCdn);
                     race = "Orc";
                     if (showPC) {
                         std::cout << "Orc PC created successfully" << std::endl;
                     }
                 } else if (PCName == 'd') {
-                    theGrid[i][j] = new Dwarf{currCdn};
+                    theGrid[i][j] = std::make_shared<Dwarf> (currCdn);
                     race = "Dwarf";
                     if (showPC) {
                         std::cout << "Dwarf PC created successfully" << std::endl;
                     }
                 } else if (PCName == 'e') {
-                    theGrid[i][j] = new Elf{currCdn};
+                    theGrid[i][j] = std::make_shared<Elf> (currCdn);
                     race = "Elf";
                     if (showPC) {
                         std::cout << "Elf PC created successfully" << std::endl;
@@ -897,18 +848,15 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                 PCLocation = currCdn;
                 setState(std::pair<Coordinate, char>{currCdn, '@'});
             } else if (s[j] == '\\') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Stair{currCdn};
+                theGrid[i][j] = std::make_shared<Stair> (currCdn);
                 StairLocation = currCdn;
                 setState(std::pair<Coordinate, char>{currCdn, '\\'});
             } else if (s[j] == 'C') {
-                delete theGrid[i][j];
-                theGrid[i][j] = new Compass{currCdn};
+                theGrid[i][j] = std::make_shared<Compass> (currCdn);
                 setState(std::pair<Coordinate, char>{currCdn, 'C'});
                 foundCompass = true;
             } else if (s[j] == 'V') {
-                delete theGrid[i][j];
-                NPC *n = new Vampire(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Vampire> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 }
@@ -919,8 +867,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'V' << std::endl;
                 }
             } else if (s[j] == 'N') {
-                delete theGrid[i][j];
-                NPC *n = new Goblin(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Goblin> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -933,8 +880,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'N' << std::endl;
                 }
             } else if (s[j] == 'X') {
-                delete theGrid[i][j];
-                NPC *n = new Phoenix(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Phoenix> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -947,8 +893,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'X' << std::endl;
                 }
             } else if (s[j] == 'W') {
-                delete theGrid[i][j];
-                NPC *n = new Werewolf(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Werewolf> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -961,8 +906,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
                 }
             } else if (s[j] == 'T') {
-                delete theGrid[i][j];
-                NPC *n = new Troll(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Troll> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -975,8 +919,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'T' << std::endl;
                 }
             } else if (s[j] == 'M') {
-                delete theGrid[i][j];
-                NPC *n = new Merchant(currCdn);
+                std::shared_ptr<NPC> n = std::make_shared<Merchant> (currCdn);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -1014,17 +957,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
 // Destructor
 Grid::~Grid() {
     // Deleting theGrid
-    int height = theGrid.size();
-    for (int i = 0; i < height; i++) {
-        int width = theGrid[i].size();
-        for (int j = 0; j < width; j++) {
-            delete theGrid[i][j];
-        }
-        theGrid[i].clear();
-    }
     theGrid.clear();
-    // Deleting TextDisplay
-    delete td;
     // Deleting chambers
     int chamberNum = chambers.size();
     for (int i = 0; i < chamberNum; i++) {
@@ -1034,9 +967,8 @@ Grid::~Grid() {
 }
 
 
-void Grid::addChamber(std::vector<std::vector<Cell*>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber) {
-    delete tempGrid[c.x][c.y];
-    tempGrid[c.x][c.y] = new Wall{c, 1};
+void Grid::addChamber(std::vector<std::vector<std::shared_ptr<Cell>>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber) {
+    tempGrid[c.x][c.y] = std::make_shared<Wall> (c, 1);
     tempChamber.emplace_back(c);    
     if (c.x - 1 >= 0 && tempGrid[c.x - 1][c.y]->getName() == "Floor") {
         addChamber(tempGrid, Coordinate{c.x - 1, c.y}, tempChamber);
@@ -1077,27 +1009,25 @@ void Grid::updateGrid() {
         for (int j = 0; j < w; j++) {
             if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == NPC::currInitState) { // NPC state=0 => has not been moved
 
-                NPC* n = dynamic_cast<NPC*>(theGrid[i][j]);
+                NPC* n = dynamic_cast<NPC*>(theGrid[i][j].get());
 
                 if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
                     actionLog.emplace_back(theGrid[i][j]->getName() + " is eliminated.");
-                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
                     p->applyElimNPCAward();
 
                     if (theGrid[i][j]->getName() == "Dragon") {
-                        Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j]);
+                        Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j].get());
                         drg->notifyObserver();
                         // Debugger
                         actionLog.emplace_back("The treasure it guards has been unlocked");
                     }
 
                     if (n->getWithCompass()) {
-                        delete theGrid[i][j];
-                        theGrid[i][j] = new Compass{Coordinate{i,j}};
+                        theGrid[i][j] = std::make_shared<Compass> (Coordinate{i,j});
                         setState(std::pair<Coordinate, char>{Coordinate{i, j}, 'C'});
                     } else {
-                        delete theGrid[i][j];
-                        theGrid[i][j] = new Floor{Coordinate{i, j}};
+                        theGrid[i][j] = std::make_shared<Floor> (Coordinate{i, j});
                         setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
                     }
                     td->notify(*this);
@@ -1134,12 +1064,11 @@ void Grid::updateGrid() {
                     std::shuffle(v.begin(), v.end(), std::default_random_engine(++seed));
                     for (int k = 0; k < 8; k++) {
                         if (theGrid[v[k].x][v[k].y]->getName() == "Floor") {
-                            delete theGrid[v[k].x][v[k].y];
                             theGrid[v[k].x][v[k].y] = theGrid[i][j];
                             theGrid[v[k].x][v[k].y]->setCdn(v[k]);
                             setState(std::pair<Coordinate, char>{v[k], SymTranslator(theGrid[v[k].x][v[k].y]->getName())});
                             td->notify(*this);
-                            theGrid[i][j] = new Floor{Coordinate{i, j}};
+                            theGrid[i][j] = std::make_shared<Floor> (Coordinate{i, j});
                             setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
                             td->notify(*this);
                             n->setMoved();
@@ -1194,7 +1123,7 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         std::cout << MAGENTA << "Item: " << codeTranslator(code) << RESET << std::endl;
         msg = msg + " and collected " + codeTranslator(code);
 
-        PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+        PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
         p->applyEffect(code);
         if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
             setState(std::pair<Coordinate, char>{StairLocation, '\\'});
@@ -1206,19 +1135,18 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
     }
     std::string name = theGrid[newCdn.x][newCdn.y]->getName();
     int state = theGrid[newCdn.x][newCdn.y]->state();
-    delete theGrid[newCdn.x][newCdn.y];
     theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
     theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
     setState(std::pair<Coordinate,char>{newCdn, '@'});
     td->notify(*this);
     if (PC::onTile == 1) {
-        theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Passage> (PCLocation, PC::onTile);
         setState(std::pair<Coordinate,char>{PCLocation, '#'});
     } else if (PC::onTile == 2) {
-        theGrid[PCLocation.x][PCLocation.y] = new Passage{PCLocation, PC::onTile};
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Passage> (PCLocation, PC::onTile);
         setState(std::pair<Coordinate,char>{PCLocation, '+'});
     } else {
-        theGrid[PCLocation.x][PCLocation.y] = new Floor{PCLocation};
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Floor> (PCLocation);
         setState(std::pair<Coordinate,char>{PCLocation, '.'});
     }
     PC::onTile = state;
@@ -1332,9 +1260,8 @@ void Grid::usePotion(Coordinate cdn) {
                     continue;
                 } else if (cdn.x + i == PCLocation.x && cdn.y + j == PCLocation.y) {
                     int code = theGrid[cdn.x][cdn.y]->state();
-                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
-                    delete theGrid[cdn.x][cdn.y];
-                    theGrid[cdn.x][cdn.y] = new Floor{cdn};
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
+                    theGrid[cdn.x][cdn.y] = std::make_shared<Floor> (cdn);
                     setState(std::pair<Coordinate,char>{cdn, '.'});
                     td->notify(*this);
                     // Debugger
@@ -1362,7 +1289,7 @@ void Grid::usePotion(Coordinate cdn) {
 
 void Grid::printState(int floorNum) const {
     std::cout << *td;
-    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y]);
+    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
     std::cout << CYAN << "Race: " << race << RESET << "                                                            Floor " << floorNum << std::endl;
     std::cout << YELLOW << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
     std::cout << "Total Score: " << std::setprecision(3) << PC::totalCoin << RESET << std::endl; 
@@ -1385,7 +1312,7 @@ void Grid::printState(int floorNum) const {
     for (int i = -2; i <= 2; i++) {
         for (int j = -2; j <= 2; j++) {
             if (theGrid[PCLocation.x + i][PCLocation.y + j]->getType() == "NPC") {
-                NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j]);
+                NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j].get());
                 std::cout << "  " << RED << n->getName() << " (" << PCLocation.x + i << "," <<  PCLocation.y + j << "): " << "HP: " << n->getHP() << "   "  << "Atk: " << n->getAtk() << "   "  << "Def: " << n->getDef() << RESET << std::endl;
             }
         }
@@ -1401,14 +1328,14 @@ void Grid::buyPotion(std::string dir) {
     if (Merchant::hatred != 0) return;
     for (size_t i = 0; i < v.size(); i++) { // Freeze all the merchants 1 unit around PC
         if (theGrid[v[i].x][v[i].y]->getName() == "Merchant") {
-            dynamic_cast<NPC*>(theGrid[v[i].x][v[i].y])->setMoved();
+            dynamic_cast<NPC*>(theGrid[v[i].x][v[i].y].get())->setMoved();
         }
     }
     Coordinate l = convertCdn(getPCLocation(), dir);
     if (theGrid[l.x][l.y]->getName() == "Merchant") {
 		std::cout << "Each potion costs 5 coins" << std::endl;
         for (int i = 0; i < 3; i++) {
-            int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[i];
+            int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y].get())->potions[i];
             std::cout << "(" << std::to_string(i + 1) << "): " << codeTranslator(effect) << std::endl;
         }
         std::cout << "Please enter the corresponding number to buy potion, or enter 's' to skip >>>" << std::endl;
@@ -1418,8 +1345,8 @@ void Grid::buyPotion(std::string dir) {
             if (c == '1' || c == '2' || c == '3') {
                 if (PC::coin >= 5) { // If PC has enough money to buy this potion
                     PC::coin -= 5;
-                    int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y])->potions[c - '1'];
-                    dynamic_cast<PC*>(theGrid[x][y])->applyEffect(potionBought);
+                    int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y].get())->potions[c - '1'];
+                    dynamic_cast<PC*>(theGrid[x][y].get())->applyEffect(potionBought);
                     std::cout << "Potion bought successfully." << std::endl;
                 } else {
                     std::cout << "Not enough gold! Transaction cancelled." << std::endl;
