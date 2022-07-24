@@ -310,20 +310,18 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
             theGrid[x2][y2] = std::make_shared<Stair> (stairChamber[i]);
             StairLocation = stairChamber[i];
             // Debugger
-            setState(std::pair<Coordinate, char>{stairChamber[i], '\\'});
-            td->notify(*this);
+            for (auto s : *flags) {
+                if (s == "SHOWSTAIR") {
+                    setState(std::pair<Coordinate, char>{stairChamber[i], '\\'});
+                    td->notify(*this);
+                    std::cout << ">>> Stair generated" << std::endl<< std::endl;
+                    break;
+                }
+            }
             break;
         }
     }
 	
-    // Debugger
-    for (auto s : *flags) {
-        if (s == "SHOWSTAIR") {
-            std::cout << *td;
-            std::cout << ">>> Stair generated" << std::endl<< std::endl;
-            break;
-        }
-    }
     
     // Step 4: potion generations
     // Debugger
@@ -507,8 +505,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
     }
 
     // Step 7: NPC generation
-    int compassCarrierIndex = randomInt(totalNPC, ++seed);
-    bool withCompass = false;
+    bool withCompass = true;
 
     bool showNPC = false;
     char type;
@@ -523,11 +520,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
         std::vector<Coordinate> npcChamber = chambers[num[0]];
         std::shuffle(npcChamber.begin(), npcChamber.end(), std::default_random_engine{seed});
-        if (i == compassCarrierIndex) {
-            withCompass = true;
-        } else {
-            withCompass = false;
-        }
         for (size_t i = 0; i < npcChamber.size(); i++) {
             if (theGrid[npcChamber[i].x][npcChamber[i].y]->getName() == "Floor") {
                 int x5 = npcChamber[i].x;
@@ -537,36 +529,47 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 if (ri < 4) {
                     n = std::make_shared<Werewolf> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'W'});
+                    n->setWithCompass(withCompass);
+                    withCompass = false;
                     if (showNPC) {
                         type = 'W';
                     }
                 } else if (ri < 7) {
                     n = std::make_shared<Vampire> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'V'});
+                    n->setWithCompass(withCompass);
+                    withCompass = false;
                     if (showNPC) {
                         type = 'V';
                     }
                 } else if (ri < 12) {
                     n = std::make_shared<Goblin> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'N'});
+                    n->setWithCompass(withCompass);
+                    withCompass = false;
                     if (showNPC) {
                         type = 'N';
                     }
                 } else if (ri < 14) {
                     n = std::make_shared<Troll> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'T'});
+                    n->setWithCompass(withCompass);
+                    withCompass = false;
                     if (showNPC) {
                         type = 'T';
                     }
                 } else if (ri < 16) {
                     n = std::make_shared<Phoenix> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'X'});
+                    n->setWithCompass(withCompass);
+                    withCompass = false;
                     if (showNPC) {
                         type = 'X';
                     }
                 } else if (ri < 18) {
                     n = std::make_shared<Merchant> (npcChamber[i]);
                     setState(std::pair<Coordinate, char>{npcChamber[i], 'M'});
+                    n->setWithCompass(false);
                     if (showNPC) {
                         type = 'M';
                     }
@@ -579,7 +582,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                     }
                 }
                 td->notify(*this);
-                n->setWithCompass(withCompass);
                 if (mode == -1) {
                     n->halfHP();
                 } else if (mode == 1) {
@@ -671,6 +673,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
     bool showTreasure = false;
     bool showPC = false;
     bool showNPC = false;
+    bool showStair = false;
     int mode = 0;
     for (auto s : *flags) {
         if (s == "SHOWPOTION") {
@@ -696,6 +699,9 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
         }
         if (s == "HARDMODE") {
             mode = 1;
+        }
+        if (s == "SHOWSTAIR") {
+            showStair = true;
         }
     }
     bool foundCompass = false;
@@ -850,7 +856,9 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
             } else if (s[j] == '\\') {
                 theGrid[i][j] = std::make_shared<Stair> (currCdn);
                 StairLocation = currCdn;
-                setState(std::pair<Coordinate, char>{currCdn, '\\'});
+                if (showStair) {
+                    setState(std::pair<Coordinate, char>{currCdn, '\\'});
+                }
             } else if (s[j] == 'C') {
                 theGrid[i][j] = std::make_shared<Compass> (currCdn);
                 setState(std::pair<Coordinate, char>{currCdn, 'C'});
@@ -926,7 +934,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                     n->moreAtk();
                 }
                 theGrid[i][j] = n;
-                v.emplace_back(n);
                 setState(std::pair<Coordinate, char>{currCdn, 'M'});
                 if (showNPC) {
                     std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'M' << std::endl;
@@ -1001,6 +1008,9 @@ void Grid::updateGrid() {
     for (auto s : *flags) {
         if (s == "MOREMONEY") {
             PC::coin = 999.00;
+        }
+        if (s == "SHOWSTAIR") {
+            setState(std::pair<Coordinate, char>{StairLocation, '\\'});
         }
     }
     std::cout << "h: " << h << std::endl;
