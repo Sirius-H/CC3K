@@ -185,8 +185,6 @@ int main(int argc, char* argv[]) {
 	std::shared_ptr<Grid> g;
 
 	if (!foundPC) {
-		// Debugger
-		std::cout << "Maps size: " << maps.size() << std::endl;
 		g = std::make_shared<Grid> (maps[0], seed, pc, currFloor == barrierFloor, &flags);
 	} else {
 		g = std::make_shared<Grid> (maps[PCFloorIndex - 1], seed, pc, &flags);

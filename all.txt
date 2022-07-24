@@ -1,0 +1,2998 @@
+#include "barriersuit.h"
+
+BarrierSuit::BarrierSuit(Coordinate cdn) : Item{cdn} { }
+
+int BarrierSuit::state() { return 10; }
+
+void BarrierSuit::notify(Subject &Dragon) { canStepOn = true; }
+
+std::string BarrierSuit::getName() const { return "BarrierSuit"; }
+
+bool BarrierSuit::canStep() { return canStepOn; }
+
+#include "cell.h"
+
+// Constructor
+Cell::Cell(Coordinate cdn): cdn{cdn} { }
+
+bool Cell::canStep() {
+    return false;
+}
+
+int Cell::attack(int def) const {
+    return 0;
+}
+
+int Cell::attacked(int dmg) {
+    return 0;
+}
+
+int Cell::getDefence() const{
+    return 0;
+}
+
+void Cell::setCdn(Coordinate c) {
+    cdn = c;
+}
+
+int Cell::getHP() const {
+    return -1;
+}
+
+// Destructor
+Cell::~Cell() { };
+#include "compass.h"
+
+Compass::Compass(Coordinate cdn) : Item{cdn} { canStepOn = true; }
+
+int Compass::state() { return 11; }
+
+std::string Compass::getName() const { return "Compass"; }
+
+bool Compass::canStep() {
+    return canStepOn;
+}
+#include <iostream>
+#include "coordinate.h"
+
+std::ostream& operator<<(std::ostream& out, Coordinate& cdn) {
+    out << "(" << cdn.x << "," << cdn.y << ")";
+    return out;
+}
+
+
+bool operator<(const Coordinate cdn1, const Coordinate cdn2) {
+    return (cdn1.x + cdn1.y) < (cdn2.x + cdn2.y);
+}
+#include "dragon.h"
+
+Dragon::Dragon(Coordinate cdn) : NPC{cdn} {
+    HP = 150;
+    Atk = 20;
+    Def = 20;
+}
+
+Dragon::Dragon(Coordinate cdn, BarrierSuit* b) : NPC{cdn} {
+    HP = 150;
+    Atk = 20;
+    Def = 20;
+    attach(b);
+}
+
+Dragon::Dragon(Coordinate cdn, Treasure* t) : NPC{cdn} {
+    HP = 150;
+    Atk = 20;
+    Def = 20;
+    attach(t);
+}
+
+std::string Dragon::getName() const {
+    return "Dragon";
+}
+#include "dwarf.h"
+
+Dwarf::Dwarf(Coordinate cdn): PC{cdn} {
+    HP = 100;
+    maxHP = 100;
+    Atk = 20;
+    Def = 30;
+}
+
+std::string Dwarf::getName() const { return "Dwarf"; }
+
+void Dwarf::applyEffect(int effect) {
+    if (effect == 0) { // Restore Health
+        if (HP + 10 > maxHP) {
+            HP = maxHP;
+        } else {
+            HP += 10;
+        }
+    } else if (effect == 1) { // Boost Atk
+        potionAtkEffect += 5;
+    } else if (effect == 2) { // Boost Def
+        potionDefEffect += 5;
+    } else if (effect == 3) { // Poison Health
+        if (HP - 10 <= 0) {
+            HP = 0;
+        } else {
+            HP -= 10;
+        }
+    } else if (effect == 4) { // Wound Atk
+        potionAtkEffect -= 5;
+    } else if (effect == 5) { // Wound Def
+        potionDefEffect -= 5;
+    } else if (effect == 6) { // Normal gold pile
+        coin += 1 * 2;
+        totalCoin += 1 * 2;
+    } else if (effect == 7) { // Small Horde
+        coin += 2 * 2;
+        totalCoin += 2 * 2;
+    } else if (effect == 8) { // Merchant Hoard
+        coin += 4 * 2;
+        totalCoin += 4 * 2;
+    } else if (effect == 9) { // Dragon Hoard
+        coin += 6 * 2;
+        totalCoin += 6 * 2;
+    } else if (effect == 10) { // Barrier Suit acquired
+        withBarrierSuit = true;
+    } else if (effect == 11) { // Compass acquired
+        withCompass = true;
+    }
+}
+
+void Dwarf::applyElimNPCAward() {
+    PC::coin += 2;
+    PC::totalCoin += 2;
+}
+
+
+#include "elf.h"
+
+Elf::Elf(Coordinate cdn): PC{cdn} {
+    HP = 140;
+    maxHP = 140;
+    Atk = 30;
+    Def = 10;
+}
+
+std::string Elf::getName() const { return "Elf"; }
+
+void Elf::applyEffect(int effect) {
+    if (effect == 0 || effect == 3) { // Restore Health & Poison Health (negative potions have positive effects)
+        if (HP + 10 > maxHP) {
+            HP = maxHP;
+        } else {
+            HP += 10;
+        }
+    } else if (effect == 1 || effect == 4) { // Boost Atk & Wound Atk (negative potions have positive effects)
+        potionAtkEffect += 5;
+    } else if (effect == 2 || effect == 5) { // Boost Def & Wound Def (negative potions have positive effects)
+        potionDefEffect += 5;
+    } else if (effect == 6) { // Normal gold pile
+        coin += 1;
+    } else if (effect == 7) { // Small Horde
+        coin += 2;
+    } else if (effect == 8) { // Merchant Hoard
+        coin += 4;
+    } else if (effect == 9) { // Dragon Hoard
+        coin += 6;
+    } else if (effect == 10) { // Barrier Suit acquired
+        withBarrierSuit = true;
+    } else if (effect == 11) { // Compass acquired
+        withCompass = true;
+    }
+}
+
+#include "floor.h"
+
+Floor::Floor(Coordinate cdn): MapElement{cdn} { }
+
+bool Floor::canStep() { return true; }
+
+std::string Floor::getName() const { return "Floor"; }
+#include "goblin.h"
+
+Goblin::Goblin(Coordinate cdn) : NPC{cdn} {
+    HP = 70;
+    Atk = 5;
+    Def = 10;
+}
+
+std::string Goblin::getName() const {
+    return "Goblin";
+}
+
+#include <memory>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <string>
+#include <iomanip>
+#include <stdexcept>
+#include "coordinate.h"
+#include "termcodes.h"
+#include "grid.h"
+#include "cell.h"
+#include "mapelement.h"
+#include "wall.h"
+#include "floor.h"
+#include "passage.h"
+#include "stair.h"
+#include "textdisplay.h"
+#include "pc.h"
+#include "human.h"
+#include "dwarf.h"
+#include "elf.h"
+#include "orc.h"
+#include "potion.h"
+#include "treasure.h"
+#include "barriersuit.h"
+#include "compass.h"
+#include "npc.h"
+#include "merchant.h"
+#include "dragon.h"
+#include "vampire.h"
+#include "werewolf.h"
+#include "troll.h"
+#include "goblin.h"
+#include "phoenix.h"
+
+Coordinate convertCdn(const Coordinate& oldCdn, std::string direction) {
+     if (direction == "no") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y};
+     } else if (direction == "so") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y};
+     } else if (direction == "ea") {
+        return Coordinate{oldCdn.x, oldCdn.y + 1};
+     } else if (direction == "we") {
+        return Coordinate{oldCdn.x, oldCdn.y - 1};
+     } else if (direction == "ne") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y + 1};
+     } else if (direction == "nw") {
+        return Coordinate{oldCdn.x - 1, oldCdn.y - 1};
+     } else if (direction == "se") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y + 1};
+     } else if (direction == "sw") {
+        return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
+     } else {
+		// Debugger
+		throw std::runtime_error("Wrong direction!");
+        return oldCdn;
+     }
+}
+// Debugger
+void print( std::vector<Coordinate> const &v ) {
+	for ( Coordinate i : v ) std::cout << i << std::endl;
+}
+
+// Debugger
+void print(std::vector<int> const &v) {
+    for (int i : v) std::cout << i << std::endl;
+}
+
+// Helper
+std::string codeTranslator(int code) {
+    if (code == 0) {
+        return "Restore Health";
+    } else if (code == 1) {
+        return "Boost Attack + 5";
+    } else if (code == 2) {
+        return "Boost Defence + 5";
+    } else if (code == 3) {
+        return "Poison Health";
+    } else if (code == 4) {
+        return "Wound Attach";
+    } else if (code == 5) {
+        return "Wound Defence";
+    } else if (code == 6) {
+        return "Treasure: Normal gold pile";
+    } else if (code == 7) {
+        return "Treasure: Small horde";
+    } else if (code == 8) {
+        return "Treasure: Merchant horde";
+    } else if (code == 9) {
+        return "Treasure: Dragon horde";
+    } else if (code == 10) {
+        return "Barrier Suit";
+    } else if (code == 11) {
+        return "Compass";
+    } else {
+        return "";
+    }
+} 
+
+// Helper
+char SymTranslator(std::string code) {
+    if  (code == "Vampire") { return 'V'; }
+    else if  (code == "Werewolf") { return 'W'; }
+    else if  (code == "Goblin") { return 'N'; }
+    else if  (code == "Merchant") { return 'M'; }
+    else if  (code == "Dragon") { return 'D'; }
+    else if  (code == "Phoenix") { return 'X'; }
+    else if  (code == "Troll") { return 'T'; }
+    else if  (code == "Treasure") { return 'G'; }
+    else if  (code == "BarrierSuit") { return 'B'; }
+    else { return ' '; }
+}
+
+
+// Helper
+std::string directionCalculator(Coordinate oldCdn, Coordinate newCdn) {
+    if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y - 1) {
+        return "Northwest";
+    } else if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y) {
+        return "North";
+    } else if (newCdn.x == oldCdn.x - 1 && newCdn.y == oldCdn.y + 1) {
+        return "Northeast";
+    } else if (newCdn.x == oldCdn.x && newCdn.y == oldCdn.y - 1) {
+        return "West";
+    } else if (newCdn.x == oldCdn.x && newCdn.y == oldCdn.y + 1) {
+        return "East";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y - 1) {
+        return "Southwest";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y) {
+        return "South";
+    } else if (newCdn.x == oldCdn.x + 1 && newCdn.y == oldCdn.y + 1) {
+        return "Souteast";
+    } else {
+        return "";
+    }
+}
+
+
+// Returns a random number between 0 and x-1
+int randomInt(int x, unsigned seed = std::chrono::system_clock::now().time_since_epoch().count()) { 
+    std::vector<int> num;
+    for (int i = 0; i < x; i++) {
+        num.emplace_back(i);
+    }
+    std::shuffle(num.begin(), num.end(), std::default_random_engine(seed));
+    int answer = num[0];
+    num.clear();
+    return answer;
+}
+
+
+
+// Default Constructor (initialize the game with random NPC/Items)
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags): seed{seed}, flags{flags} {
+    int totalNPC = 20;
+    int mode = 0; // -1 easy; 0 normal; 1 hard
+    for (auto s : *flags) {
+        if (s == "EASYMODE") {
+            mode = -1;
+            break;
+        }
+        if (s == "HARDMODE") {
+            mode = 1;
+            break;
+        }
+    }
+    // Step 1: create an empty grid of cells, create and connect with TextDisplay
+    int lineNum = 0;
+    std::vector<std::vector<std::shared_ptr<Cell>>> tempGrid;
+
+    for (size_t i = 0; i < theFloor.size(); i++) {
+        std::string s = theFloor[i];
+        std::vector<std::shared_ptr<Cell>> tempRow1;
+        std::vector<std::shared_ptr<Cell>> tempRow2;
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+            Coordinate currCdn{lineNum, i};
+            std::shared_ptr<Cell> ptr1;
+            std::shared_ptr<Cell> ptr2;
+            if (s[i] == '|') {
+                ptr1 = std::make_shared<Wall> (currCdn, 1);
+                ptr2 = std::make_shared<Wall> (currCdn, 1);
+            } else if (s[i] == '-') {
+                ptr1 = std::make_shared<Wall> (currCdn, 2);
+                ptr2 = std::make_shared<Wall> (currCdn, 2);
+            } else if (s[i] == ' ') {
+                ptr1 = std::make_shared<Wall> (currCdn, 3);
+                ptr2 = std::make_shared<Wall> (currCdn, 3);
+            } else if (s[i] == '.') {
+                ptr1 = std::make_shared<Floor> (currCdn);
+                ptr2 = std::make_shared<Floor> (currCdn);
+            } else if (s[i] == '#') {
+                ptr1 = std::make_shared<Passage> (currCdn, 1);
+                ptr2 = std::make_shared<Passage> (currCdn, 1);
+            } else if (s[i] == '+') {
+                ptr1 = std::make_shared<Passage> (currCdn, 2);
+                ptr2 = std::make_shared<Passage> (currCdn, 2);
+            } else {
+                // Debugger
+                //std::cout << "this line should not be printed" << std::endl;
+            }
+            tempRow1.emplace_back(ptr1);
+            tempRow2.emplace_back(ptr2);
+        }
+        lineNum++;
+        theGrid.emplace_back(tempRow1);
+        tempGrid.emplace_back(tempRow2);
+    }
+    td = std::make_shared<TextDisplay> (theGrid);
+    // Debugger
+    //std::cout << *td;
+
+
+    // Split chambers
+    // 默认grid不为空
+    h = tempGrid.size();
+    w = tempGrid[0].size();
+    int chamberIndex = 0;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (tempGrid[i][j]->getName() == "Floor") {
+                std::vector<Coordinate> tempChamber;
+                addChamber(tempGrid, Coordinate{i,j}, tempChamber);
+                chambers.emplace_back(tempChamber);
+                chamberIndex++;
+            }
+        }
+    }
+
+    
+    // Step 2: Spawn PC
+    std::default_random_engine rng{seed};
+    std::vector<int> num;
+    int chamber_size = chambers.size();
+    for (int i = 0; i < chamber_size; i++) {
+        num.emplace_back(i);
+    }
+    std::shuffle(num.begin(), num.end(), rng);
+    std::vector<Coordinate> PCchamber = chambers[num[0]];
+    std::shuffle(PCchamber.begin(), PCchamber.end(), rng);
+    std::pair<Coordinate, char> newState{PCchamber.at(0), '@'};
+    setState(newState);
+    td->notify(*this); 
+
+    int x1 = PCchamber.at(0).x;
+    int y1 = PCchamber.at(0).y;
+    if (PCName == 'h') {
+        theGrid[x1][y1] = std::make_shared<Human> (PCchamber[0]);
+        race = "Human";
+
+        for (auto s : *flags) {
+            if (s == "SHOWPC") {
+                std::cout << "Human PC created successfully" << std::endl;
+                break;
+            }
+        }
+
+    } else if (PCName == 'd') {
+        race = "Dwarf";
+        theGrid[x1][y1] = std::make_shared<Dwarf> (PCchamber[0]);
+        for (auto s : *flags) {
+            if (s == "SHOWPC") {
+                std::cout << "Dwarf PC created successfully" << std::endl;
+                break;
+            }
+        }
+    } else if (PCName == 'e') {
+        race = "Elf";
+        theGrid[x1][y1] = std::make_shared<Elf> (PCchamber[0]);
+        for (auto s : *flags) {
+            if (s == "SHOWPC") {
+                std::cout << "Elf PC created successfully" << std::endl;
+                break;
+            }
+        }
+    } else if (PCName == 'o') {
+        race = "Orc";
+        theGrid[x1][y1] = std::make_shared<Orc> (PCchamber[0]);
+        for (auto s : *flags) {
+            if (s == "SHOWPC") {
+                std::cout << "Orc PC created successfully" << std::endl;
+                break;
+            }
+        }
+    }
+    PCLocation = PCchamber[0];
+
+    // Debugger
+    for (auto s : *flags) {
+        if (s == "SHOWPC") {
+            std::cout << *td;
+            std::cout << "PC generated successfully" << std::endl << std::endl;
+            break;
+        }
+    }
+
+    // Step 3: Randomly generate Stair
+	std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+    std::vector<Coordinate> stairChamber = chambers[num[0]];
+    std::shuffle(stairChamber.begin(), stairChamber.end(), std::default_random_engine{++seed});
+    for (size_t i = 0; i < stairChamber.size(); i++) {
+        int x2 = stairChamber[i].x;
+        int y2 = stairChamber[i].y;
+        if (theGrid[x2][y2]->getName() == "Floor") {
+            theGrid[x2][y2] = std::make_shared<Stair> (stairChamber[i]);
+            StairLocation = stairChamber[i];
+            // Debugger
+            setState(std::pair<Coordinate, char>{stairChamber[i], '\\'});
+            td->notify(*this);
+            break;
+        }
+    }
+	
+    // Debugger
+    for (auto s : *flags) {
+        if (s == "SHOWSTAIR") {
+            std::cout << *td;
+            std::cout << ">>> Stair generated" << std::endl<< std::endl;
+            break;
+        }
+    }
+    
+    // Step 4: potion generations
+    // Debugger
+    for (auto s : *flags) {
+        if (s == "SHOWPOTION") {
+            std::cout << "### Potion effect code: 0-Restore Health; 1-Boost Atk; 2-Boost Def; 3-Poison Health; 4-Wound Atk; 5; Wound Def ###" << std::endl << std::endl;
+            break;
+        }
+    }
+    
+    for (int i = 0; i < 10; i++) {
+		std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+        std::vector<Coordinate> potionChamber = chambers[num[0]];
+        std::shuffle(potionChamber.begin(), potionChamber.end(), std::default_random_engine(++seed));
+		for (size_t i = 0; i < potionChamber.size(); i++) {
+            try {
+                canMoveTo(potionChamber[i]);
+            } catch (std::runtime_error& msg) {
+                continue;
+            }
+            int x3 = potionChamber[i].x;
+            int y3 = potionChamber[i].y;
+            int randomPotionEffect = randomInt(6, ++seed);
+            theGrid[x3][y3] = std::make_shared<Potion> (potionChamber[i], randomPotionEffect);
+            setState(std::pair<Coordinate, char>{potionChamber[i], 'P'});
+            // Debugger
+            for (auto s : *flags) {
+                if (s == "SHOWPOTION") {
+                    std::cout << "Generated Potion: Coordinate: " << potionChamber[i] << "  Effect: " << codeTranslator(randomPotionEffect) << std::endl;
+                    break;
+                }
+            }
+            td->notify(*this);
+            break;
+		}
+        potionChamber.clear();
+    }
+    // Debugger
+
+    for (auto s : *flags) {
+        if (s == "SHOWPOTION") {
+            std::cout << *td;
+            std::cout << ">>> Potion generated" << std::endl << std::endl;
+            break;
+        }
+    }
+
+
+    // Step 5: Gold
+	int goldPileNum = 10; // Normal Mode
+	if (mode == -1) { // Easy Mode
+		goldPileNum = 15;
+	} else if (mode == 1) { // Hard Mode
+		goldPileNum = 5;
+	}
+    // Debugger
+    for (auto s : *flags) {
+        if (s == "SHOWTREASURE") {
+            std::cout << "### Treasure code:  6-Normal gold pile;  7-Small horde;  8-Merchant horde;  9-Dragon horde" << std::endl << std::endl;
+            break;
+        }
+    }
+    for (int i = 0; i < goldPileNum; i++) {
+        std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+
+        std::vector<Coordinate> goldChamber = chambers[num[0]];
+        std::shuffle(goldChamber.begin(), goldChamber.end(), std::default_random_engine{seed});
+		for (size_t i = 0; i < goldChamber.size(); i++) {
+			if (theGrid[goldChamber[i].x][goldChamber[i].y]->getName() == "Floor") {
+                int x4 = goldChamber[i].x;
+                int y4 = goldChamber[i].y;
+                int ri = randomInt(8, ++seed);
+                int treasure = 0;
+                if (ri <= 4) {
+                    treasure = 6;
+                } else if (ri == 5) {
+                    treasure = 9;
+                } else if (ri > 5) {
+                    treasure = 7;
+                }
+                std::shared_ptr<Treasure> trs = std::make_shared<Treasure>(goldChamber[i], treasure);
+                theGrid[x4][y4] = trs;
+                // Debugger
+                for (auto s : *flags) {
+                    if (s == "SHOWTREASURE") {
+                        std::cout << "Generating treasure:  Coordinate: " << goldChamber[i] << "  Treasure code: " << treasure << std::endl;
+                        break;
+                    }
+                }
+
+                setState(std::pair<Coordinate, char>{goldChamber[i], 'G'});
+                td->notify(*this);
+                
+                if (treasure == 9) { // if this is a dragon horde, spawn a dragon next to it
+                    std::vector<Coordinate> treasureNeighbours;
+                    for (int m = -1; m <= 1; m++) {
+                        for (int n = -1; n <= 1; n++) {
+                            if (theGrid[x4 + m][y4 + n]->getName() == "Floor") {
+                                treasureNeighbours.emplace_back(Coordinate{x4 + m, y4 + n});
+                            }
+                        }
+                    }
+                    // Debugger
+                    //std::cout << "Treasure neighbour list: " << std::endl;
+                    //print(treasureNeighbours);
+
+					if ((int)(treasureNeighbours.size()) == 0) {
+						// Debugger
+						std::cout << "No place to put the dragon, treasure deleted" << std::endl;
+						theGrid[x4][y4] = std::make_shared<Floor> (Coordinate{x4, y4});
+					} else {
+						Coordinate dragonCdn = treasureNeighbours[randomInt(treasureNeighbours.size(), ++seed)];
+                        std::shared_ptr<Dragon> d = std::make_shared<Dragon> (dragonCdn, trs.get());
+                        if (mode == -1) {
+                            d->halfHP();
+                        } else if (mode == 1) {
+                            d->moreAtk();
+                        }
+	                    theGrid[dragonCdn.x][dragonCdn.y] = d;
+	                    setState(std::pair<Coordinate, char>{dragonCdn, 'D'});
+	                    td->notify(*this);
+                        totalNPC--;
+					}
+					treasureNeighbours.clear();
+                }
+			break;
+            }
+        }
+        goldChamber.clear();
+    }
+    // Debugger
+    for (auto s : *flags) {
+        if (s == "SHOWTREASURE") {
+            std::cout << *td;
+            std::cout << ">>> Treasure generated" << std::endl;
+            break;
+        }
+    }
+
+
+    // Step 6: Barrier Suit
+    if (barrierSuit) {
+        std::shuffle(num.begin(), num.end(), std::default_random_engine(++seed));
+        std::vector<Coordinate> bsChamber = chambers[num[0]];
+        std::shuffle(bsChamber.begin(), bsChamber.end(), std::default_random_engine(++seed));
+        for (size_t i = 0; i < bsChamber.size(); i++) {
+            int x5 = bsChamber[i].x;
+            int y5 = bsChamber[i].y;
+            std::vector<Coordinate> bsNeighbours;
+            for (int m = -1; m <= 1; m++) {
+                for (int n = -1; n <= 1; n++) {
+                    if (theGrid[x5 + m][y5 + n]->getName() == "Floor") {
+                        bsNeighbours.emplace_back(Coordinate{x5 + m, y5 + n});
+                    }
+                }
+            }
+            if ((int)(bsNeighbours.size()) == 0) { // if there is no place around the barrier suit for a dragon, then keep searching
+                bsNeighbours.clear();
+                continue;
+            }
+            // Creating BarrierSuit in the Grid
+            std::shared_ptr<BarrierSuit> bs = std::make_shared<BarrierSuit> (bsChamber[i]);
+            theGrid[x5][y5] = bs;
+            setState(std::pair<Coordinate, char>{bsChamber[i], 'B'});
+            td->notify(*this);
+
+            // Create a Dragon around the BarrierSuit
+            std::shared_ptr<Dragon> d = std::make_shared<Dragon> (bsNeighbours[0], bs.get());
+            if (mode == -1) {
+                d->halfHP();
+            } else if (mode == 1) {
+                d->moreAtk();
+            }
+            theGrid[bsNeighbours[0].x][bsNeighbours[0].y] = d;
+            setState(std::pair<Coordinate, char>{bsNeighbours[0], 'D'});
+            td->notify(*this);
+            bsNeighbours.clear();
+            totalNPC--;
+            break;
+        }
+    }
+
+    // Step 7: NPC generation
+    int compassCarrierIndex = randomInt(totalNPC, ++seed);
+    bool withCompass = false;
+
+    bool showNPC = false;
+    char type;
+    for (auto s : *flags) {
+        if (s == "SHOWNPC") {
+            std::cout << "### NPC code:  W(werewolf);  V(vampire);  N(Goblin);  T(troll);  X(phoenix);  M(merchant)" << std::endl << std::endl;
+            showNPC = true;
+            break;
+        }
+    }
+    for (int i = 0; i < totalNPC; i++) {
+        std::shuffle(num.begin(), num.end(), std::default_random_engine{++seed});
+        std::vector<Coordinate> npcChamber = chambers[num[0]];
+        std::shuffle(npcChamber.begin(), npcChamber.end(), std::default_random_engine{seed});
+        if (i == compassCarrierIndex) {
+            withCompass = true;
+        } else {
+            withCompass = false;
+        }
+        for (size_t i = 0; i < npcChamber.size(); i++) {
+            if (theGrid[npcChamber[i].x][npcChamber[i].y]->getName() == "Floor") {
+                int x5 = npcChamber[i].x;
+                int y5 = npcChamber[i].y;
+                int ri = randomInt(18, ++seed);
+                std::shared_ptr<NPC> n;
+                if (ri < 4) {
+                    n = std::make_shared<Werewolf> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'W'});
+                    if (showNPC) {
+                        type = 'W';
+                    }
+                } else if (ri < 7) {
+                    n = std::make_shared<Vampire> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'V'});
+                    if (showNPC) {
+                        type = 'V';
+                    }
+                } else if (ri < 12) {
+                    n = std::make_shared<Goblin> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'N'});
+                    if (showNPC) {
+                        type = 'N';
+                    }
+                } else if (ri < 14) {
+                    n = std::make_shared<Troll> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'T'});
+                    if (showNPC) {
+                        type = 'T';
+                    }
+                } else if (ri < 16) {
+                    n = std::make_shared<Phoenix> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'X'});
+                    if (showNPC) {
+                        type = 'X';
+                    }
+                } else if (ri < 18) {
+                    n = std::make_shared<Merchant> (npcChamber[i]);
+                    setState(std::pair<Coordinate, char>{npcChamber[i], 'M'});
+                    if (showNPC) {
+                        type = 'M';
+                    }
+                }
+                if (showNPC) {
+                    if (!withCompass) {
+                        std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << std::endl;
+                    } else {
+                        std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << GREEN << "  With Compass" << RESET << std::endl;
+                    }
+                }
+                td->notify(*this);
+                n->setWithCompass(withCompass);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[x5][y5] = n;
+                break;
+            }
+        }
+        npcChamber.clear();
+    }
+
+
+
+    stairChamber.clear();
+    PCchamber.clear();
+	
+    num.clear();
+
+    // Debugger
+    /*
+    delete theGrid[18][7];
+    theGrid[18][7] = new Compass{Coordinate{18,7}};
+    setState(std::pair<Coordinate,char>{Coordinate{18,7}, 'C'});
+    td->notify(*this);
+    */
+}
+
+
+
+
+
+
+
+// Another Constructor (read map)
+// Constructor (loading saved game)
+Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string>* flags): seed{seed}, flags{flags} {
+
+    std::vector<std::vector<std::shared_ptr<Cell>>> tempGrid;
+    // Step 1: create an empty grid of cells, create and connect with TextDisplay
+    h = theFloor.size();
+    w = theFloor.at(0).size();
+    std::vector<std::vector<char>> backupMap;
+    for (int i = 0; i < h; i++) {
+        std::string s = theFloor[i];
+        std::vector<std::shared_ptr<Cell>> tempRow1;
+        std::vector<std::shared_ptr<Cell>> tempRow2;
+        std::vector<char> backupRow;
+        for (int j = 0; j < w; j++) {
+            Coordinate currCdn{i, j};
+            std::shared_ptr<Cell> ptr1;
+            std::shared_ptr<Cell> ptr2;
+            if (s[j] == '|') {
+                ptr1 = std::make_shared<Wall> (currCdn, 1);
+                ptr2 = std::make_shared<Wall> (currCdn, 1);
+                backupRow.emplace_back('|');
+            } else if (s[j] == '-') {
+                ptr1 = std::make_shared<Wall> (currCdn, 2);
+                ptr2 = std::make_shared<Wall> (currCdn, 2);
+                backupRow.emplace_back('-');
+            } else if (s[j] == ' ') {
+                ptr1 = std::make_shared<Wall> (currCdn, 3);
+                ptr2 = std::make_shared<Wall> (currCdn, 3);
+                backupRow.emplace_back(' ');
+            } else if (s[j] == '#') {
+                ptr1 = std::make_shared<Passage> (currCdn, 1);
+                ptr2 = std::make_shared<Passage> (currCdn, 1);
+                backupRow.emplace_back('#');
+            } else if (s[j] == '+') {
+                ptr1 = std::make_shared<Passage> (currCdn, 2);
+                ptr2 = std::make_shared<Passage> (currCdn, 2);
+                backupRow.emplace_back('+');
+            } else {
+                ptr1 = std::make_shared<Floor> (currCdn);
+                ptr2 = std::make_shared<Floor> (currCdn);
+                backupRow.emplace_back('.');
+            }
+            tempRow1.emplace_back(ptr1);
+            tempRow2.emplace_back(ptr2);
+        }
+        theGrid.emplace_back(tempRow1);
+        tempGrid.emplace_back(tempRow2);
+        backupMap.emplace_back(backupRow);
+    }
+    td = std::make_shared<TextDisplay> (theGrid);
+
+    // Step 2: Generate PC/NPC/Items
+    bool showPotion = false;
+    bool showTreasure = false;
+    bool showPC = false;
+    bool showNPC = false;
+    int mode = 0;
+    for (auto s : *flags) {
+        if (s == "SHOWPOTION") {
+            showPotion = true;
+            showTreasure = true;
+            showPC = true;
+            showNPC = true;
+        }
+        if (s == "SHOWTREASURE") {
+            showTreasure = true;
+        }
+        if (s == "SHOWPC") {
+            showPC = true;
+        }
+        if (s == "SHOWNPC") {
+            showNPC = true;
+        }
+        if (s == "MOREMONEY") {
+            PC::coin = 9999;
+        }
+        if (s == "EASYMODE") {
+            mode = -1;
+        }
+        if (s == "HARDMODE") {
+            mode = 1;
+        }
+    }
+    bool foundCompass = false;
+    std::vector<std::shared_ptr<NPC>> v;
+    for (int i = 0; i < h; i++) {
+        std::string s = theFloor[i];
+        for (int j = 0; j < w; j++) {
+            Coordinate currCdn{i, j};
+            if (s[j] == '0') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 0);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(0) << std::endl;
+                }
+            } else if (s[j] == '1') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 1);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(1) << std::endl;
+                }
+            } else if (s[j] == '2') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 2);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(2) << std::endl;
+                }
+            } else if (s[j] == '3') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 3);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(3) << std::endl;
+                }
+            } else if (s[j] == '4') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 4);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(4) << std::endl;
+                }
+            } else if (s[j] == '5') {
+                theGrid[i][j] = std::make_shared<Potion> (currCdn, 5);
+                setState(std::pair<Coordinate, char>{currCdn, 'P'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(5) << std::endl;
+                }
+            } else if (s[j] == '6') {
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 6);
+                setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                if (showPotion) {
+                    std::cout << "Generated Potion: Coordinate: " << currCdn << "  Effect: " << codeTranslator(6) << std::endl;
+                }
+            } else if (s[j] == '7') {
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 7);
+                setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                if (showTreasure) {
+                    std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 7 << std::endl;
+                }
+            } else if (s[j] == '8') {
+                
+                theGrid[i][j] = std::make_shared<Treasure> (currCdn, 8);
+                setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                if (showTreasure) {
+                    std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 8 << std::endl;
+                }
+            } else if (s[j] == '9') {
+                std::shared_ptr<Treasure> t = std::make_shared<Treasure> (currCdn, 9);
+                theGrid[i][j] = t;
+                setState(std::pair<Coordinate, char>{currCdn, 'G'});
+                td->notify(*this);
+                if (showTreasure) {
+                    std::cout << "Generating treasure:  Coordinate: " << currCdn << "  Treasure code: " << 9 << std::endl;
+                }
+                bool foundDragon = false;
+                for (int w = -1; w <= 1; w++) {
+                    for (int h = -1; h <= 1; h++) {
+                        if (theFloor[i+w][j+h] == 'D') {
+                            std::shared_ptr<Dragon> d = std::make_shared<Dragon>(Coordinate{i+w, j+h}, t.get());
+                            setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
+                            if (mode == -1) {
+                                d->halfHP();
+                            } else if (mode == 1) {
+                                d->moreAtk();
+                            }
+                            theGrid[i+w][j+h] = d;
+                            foundDragon = true;
+                            break;
+                        }
+                    }
+                    if (foundDragon) {
+                        break;
+                    }
+                }
+                if (!foundDragon) {
+                    std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{0, 0}, t.get());
+                    d->notifyObserver();
+                }
+            } else if (s[j] == 'B') {
+                std::shared_ptr<BarrierSuit> b = std::make_shared<BarrierSuit> (currCdn);
+                theGrid[i][j] = b;
+                setState(std::pair<Coordinate, char>{currCdn, 'B'});
+                td->notify(*this);
+                bool foundDragon = false;
+                for (int w = -1; w <= 1; w++) {
+                    for (int h = -1; h <= 1; h++) {
+                        if (theFloor[i+w][j+h] == 'D') {
+                            std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{i+w, j+h}, b.get());
+                            setState(std::pair<Coordinate, char>{Coordinate{i+w, j+h}, 'D'});
+                            if (mode == -1) {
+                                d->halfHP();
+                            } else if (mode == 1) {
+                                d->moreAtk();
+                            }
+                            theGrid[i+w][j+h] = d;
+                        }
+                    }
+                    if (foundDragon) {
+                        break;
+                    }
+                }
+                if (!foundDragon) {
+                    std::shared_ptr<Dragon> d = std::make_shared<Dragon> (Coordinate{0, 0}, b.get());
+                    d->notifyObserver();
+                }
+                theGrid[i][j] = b;
+            } else if (s[j] == '@') {
+                if (PCName == 'h') {
+                    theGrid[i][j] = std::make_shared<Human> (currCdn);
+                    race = "Human";
+                    if (showPC) {
+                        std::cout << "Human PC created successfully" << std::endl;
+                    }
+                } else if (PCName == 'o') {
+                    theGrid[i][j] = std::make_shared<Orc> (currCdn);
+                    race = "Orc";
+                    if (showPC) {
+                        std::cout << "Orc PC created successfully" << std::endl;
+                    }
+                } else if (PCName == 'd') {
+                    theGrid[i][j] = std::make_shared<Dwarf> (currCdn);
+                    race = "Dwarf";
+                    if (showPC) {
+                        std::cout << "Dwarf PC created successfully" << std::endl;
+                    }
+                } else if (PCName == 'e') {
+                    theGrid[i][j] = std::make_shared<Elf> (currCdn);
+                    race = "Elf";
+                    if (showPC) {
+                        std::cout << "Elf PC created successfully" << std::endl;
+                    }
+                }
+                PCLocation = currCdn;
+                setState(std::pair<Coordinate, char>{currCdn, '@'});
+            } else if (s[j] == '\\') {
+                theGrid[i][j] = std::make_shared<Stair> (currCdn);
+                StairLocation = currCdn;
+                setState(std::pair<Coordinate, char>{currCdn, '\\'});
+            } else if (s[j] == 'C') {
+                theGrid[i][j] = std::make_shared<Compass> (currCdn);
+                setState(std::pair<Coordinate, char>{currCdn, 'C'});
+                foundCompass = true;
+            } else if (s[j] == 'V') {
+                std::shared_ptr<NPC> n = std::make_shared<Vampire> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'V'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'V' << std::endl;
+                }
+            } else if (s[j] == 'N') {
+                std::shared_ptr<NPC> n = std::make_shared<Goblin> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'N'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'N' << std::endl;
+                }
+            } else if (s[j] == 'X') {
+                std::shared_ptr<NPC> n = std::make_shared<Phoenix> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'X'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'X' << std::endl;
+                }
+            } else if (s[j] == 'W') {
+                std::shared_ptr<NPC> n = std::make_shared<Werewolf> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'W'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'W' << std::endl;
+                }
+            } else if (s[j] == 'T') {
+                std::shared_ptr<NPC> n = std::make_shared<Troll> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'T'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'T' << std::endl;
+                }
+            } else if (s[j] == 'M') {
+                std::shared_ptr<NPC> n = std::make_shared<Merchant> (currCdn);
+                if (mode == -1) {
+                    n->halfHP();
+                } else if (mode == 1) {
+                    n->moreAtk();
+                }
+                theGrid[i][j] = n;
+                v.emplace_back(n);
+                setState(std::pair<Coordinate, char>{currCdn, 'M'});
+                if (showNPC) {
+                    std::cout << "Generated NPC: Coordinate: " << currCdn << "  Type: " << 'M' << std::endl;
+                }
+            } else {
+                setState(std::pair<Coordinate, char>{currCdn, backupMap[i][j]});
+            }
+            td->notify(*this);
+            if (showPC) {
+                std::cout << *td;
+                std::cout << "PC generated successfully" << std::endl << std::endl;
+            }
+        }
+    }
+    if (!foundCompass) {
+        int size = v.size();
+        std::vector<int> num;
+        for (int i = 0; i < size; i++) {
+            num.emplace_back(i);
+        }
+        std::shuffle(num.begin(), num.end(), std::default_random_engine{seed});
+        v[num.at(0)]->setWithCompass(true);
+        num.clear();
+    }
+    v.clear();
+}
+
+// Destructor
+Grid::~Grid() {
+    // Deleting theGrid
+    theGrid.clear();
+    // Deleting chambers
+    int chamberNum = chambers.size();
+    for (int i = 0; i < chamberNum; i++) {
+        chambers[i].clear();
+    }
+    chambers.clear();
+}
+
+
+void Grid::addChamber(std::vector<std::vector<std::shared_ptr<Cell>>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber) {
+    tempGrid[c.x][c.y] = std::make_shared<Wall> (c, 1);
+    tempChamber.emplace_back(c);    
+    if (c.x - 1 >= 0 && tempGrid[c.x - 1][c.y]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x - 1, c.y}, tempChamber);
+    }
+    if (c.x + 1 < h && tempGrid[c.x + 1][c.y]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x + 1, c.y}, tempChamber);
+    }
+    if (c.y - 1 >= 0 && tempGrid[c.x][c.y - 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x, c.y - 1}, tempChamber);
+    }
+    if (c.y + 1 < w && tempGrid[c.x][c.y + 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x, c.y + 1}, tempChamber);
+    }
+    if (c.x - 1 >= 0 && c.y - 1 >= 0 && tempGrid[c.x - 1][c.y - 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x - 1, c.y - 1}, tempChamber);
+    }
+    if (c.x + 1 < h && c.y - 1 >= 0 && tempGrid[c.x + 1][c.y - 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x + 1, c.y - 1}, tempChamber);
+    }
+    if (c.x - 1 >= 0 && c.y + 1 < w && tempGrid[c.x - 1][c.y + 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x - 1, c.y + 1}, tempChamber);
+    }
+    if (c.x + 1 < h && c.y + 1 < w && tempGrid[c.x + 1][c.y + 1]->getName() == "Floor") {
+        addChamber(tempGrid, Coordinate{c.x + 1, c.y + 1}, tempChamber);
+    }
+}
+
+
+void Grid::updateGrid() {
+    for (auto s : *flags) {
+        if (s == "MOREMONEY") {
+            PC::coin = 999.00;
+        }
+    }
+    std::cout << "h: " << h << std::endl;
+    std::cout << "w:" << w << std::endl;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            if (theGrid[i][j]->getType() == "NPC" && theGrid[i][j]->state() == NPC::currInitState) { // NPC state=0 => has not been moved
+
+                NPC* n = dynamic_cast<NPC*>(theGrid[i][j].get());
+
+                if (theGrid[i][j]->getHP() <= 0) { // If this NPC dies, remove it from the grid
+                    actionLog.emplace_back(theGrid[i][j]->getName() + " is eliminated.");
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
+                    p->applyElimNPCAward();
+
+                    if (theGrid[i][j]->getName() == "Dragon") {
+                        Dragon* drg = dynamic_cast<Dragon*>(theGrid[i][j].get());
+                        drg->notifyObserver();
+                        // Debugger
+                        actionLog.emplace_back("The treasure it guards has been unlocked");
+                    }
+
+                    if (n->getWithCompass()) {
+                        theGrid[i][j] = std::make_shared<Compass> (Coordinate{i,j});
+                        setState(std::pair<Coordinate, char>{Coordinate{i, j}, 'C'});
+                    } else {
+                        theGrid[i][j] = std::make_shared<Floor> (Coordinate{i, j});
+                        setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
+                    }
+                    td->notify(*this);
+                    continue;
+                }
+
+                else if ((PCLocation.x == i || PCLocation.x == i + 1 || PCLocation.x == i - 1) && (PCLocation.y == j || PCLocation.y == j - 1 || PCLocation.y == j + 1)) { // If player is within 1 unit, it automatically attacks the player
+                    if (theGrid[i][j]->getName() == "Merchant" && Merchant::hatred == 0) { // if this NPC is a merchant and PC hasn't attacked a merchant on this floor, then it does not attack PC
+                        continue;
+                    }
+                    int def = theGrid[PCLocation.x][PCLocation.y]->getDefence();
+                    int dmg = n->attack(def);
+                    theGrid[PCLocation.x][PCLocation.y]->attacked(dmg);
+                    actionLog.emplace_back(theGrid[i][j]->getName() + " deals " + std::to_string(dmg) + " HP damage to PC.");
+                    n->setMoved();
+                } 
+                                
+                
+                else { // else move one block
+                    if (theGrid[i][j]->getName() == "Dragon") {
+                        n->setMoved();
+                        continue;
+                    } // Dragons do not move
+
+                    std::vector<Coordinate> v;
+                    for (int m = -1; m <= 1; m++) {
+                        for (int n = -1; n <= 1; n++) {
+                            if (m == 0 && n == 0) {
+                                continue;
+                            }
+                            v.emplace_back(Coordinate{i + m, j + n});
+                        }
+                    }
+                    std::shuffle(v.begin(), v.end(), std::default_random_engine(++seed));
+                    for (int k = 0; k < 8; k++) {
+                        if (theGrid[v[k].x][v[k].y]->getName() == "Floor") {
+                            theGrid[v[k].x][v[k].y] = theGrid[i][j];
+                            theGrid[v[k].x][v[k].y]->setCdn(v[k]);
+                            setState(std::pair<Coordinate, char>{v[k], SymTranslator(theGrid[v[k].x][v[k].y]->getName())});
+                            td->notify(*this);
+                            theGrid[i][j] = std::make_shared<Floor> (Coordinate{i, j});
+                            setState(std::pair<Coordinate, char>{Coordinate{i, j}, '.'});
+                            td->notify(*this);
+                            n->setMoved();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    NPC::currInitState = 1 - NPC::currInitState;
+}
+
+
+
+bool Grid::canMoveTo(Coordinate cdn) { // for PC
+    if (theGrid[cdn.x][cdn.y]->canStep() == true) {
+        return true;
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Wall") {
+        throw std::runtime_error("You should not be moving on to a wall");
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
+        throw std::runtime_error("You should not be moving on to a potion");
+    } else if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
+        throw std::runtime_error("You should not be moving on to a NPC");
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "Treasure") {
+        throw std::runtime_error("You need to beat the dragon to unlock this item");
+    } else if (theGrid[cdn.x][cdn.y]->getName() == "BarrierSuit") {
+        throw std::runtime_error("You need to beat the dragon to unlock this item");
+    }
+    return false;
+}
+
+bool Grid::moveTo(Coordinate newCdn) { // for PC
+    // Debugger
+    //std::cout << "PC Location: " << PCLocation << std::endl;
+    //std::cout << "Target Cdn:" << newCdn << std::endl;
+    std::string msg = "";
+
+    if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
+        return true;
+    }
+    try {
+        canMoveTo(newCdn);
+    } catch (std::runtime_error& msg) {
+        throw;
+    }
+    msg = msg + "PC moved to " + directionCalculator(PCLocation, newCdn);
+
+    if (theGrid[newCdn.x][newCdn.y]->getType() == "Item") {
+        int code = theGrid[newCdn.x][newCdn.y]->state();
+        // Debugger
+        std::cout << MAGENTA << "Item: " << codeTranslator(code) << RESET << std::endl;
+        msg = msg + " and collected " + codeTranslator(code);
+
+        PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
+        p->applyEffect(code);
+        if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
+            setState(std::pair<Coordinate, char>{StairLocation, '\\'});
+            td->notify(*this);
+            // Debugger
+            //std::cout << GREEN << "You had the compass, stair revealed >>>" << RESET << std::endl;
+            actionLog.emplace_back("PC obtains the Compass. Stair is now revealed.");
+        }
+    }
+    std::string name = theGrid[newCdn.x][newCdn.y]->getName();
+    int state = theGrid[newCdn.x][newCdn.y]->state();
+    theGrid[newCdn.x][newCdn.y] = theGrid[PCLocation.x][PCLocation.y];
+    theGrid[newCdn.x][newCdn.y]->setCdn(newCdn);
+    setState(std::pair<Coordinate,char>{newCdn, '@'});
+    td->notify(*this);
+    if (PC::onTile == 1) {
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Passage> (PCLocation, PC::onTile);
+        setState(std::pair<Coordinate,char>{PCLocation, '#'});
+    } else if (PC::onTile == 2) {
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Passage> (PCLocation, PC::onTile);
+        setState(std::pair<Coordinate,char>{PCLocation, '+'});
+    } else {
+        theGrid[PCLocation.x][PCLocation.y] = std::make_shared<Floor> (PCLocation);
+        setState(std::pair<Coordinate,char>{PCLocation, '.'});
+    }
+    PC::onTile = state;
+    td->notify(*this);
+    PCLocation = newCdn;
+
+    // auto attack to surrounding NPC
+    std::vector<Coordinate> v;
+    countNeighbour(PCLocation, v);
+    if (v.size() == 0) {
+        actionLog.emplace_back(msg + ".");
+    } else if (v.size() == 1 && (theGrid[v[0].x][v[0].y]->getName() != "Merchant" || Merchant::hatred != 0)) {
+        msg = msg + " and meets 1 NPC: " + theGrid[v[0].x][v[0].y]->getName();
+        actionLog.emplace_back(msg + ".");
+        try {
+            PCAttack(v[0]);
+        }
+        catch (std::runtime_error& errorMsg) {
+            std::cout << errorMsg.what() << std::endl;
+        }
+    } else if (v.size() > 1) {
+        msg = msg + " and meets more than 1 NPC.";
+        actionLog.emplace_back(msg + ".");
+        std::cout << "More than 1 enermy around, please choose one to attack, or press 's' to skip (i.e.: do not attack)" << std::endl;
+        for (size_t i = 0; i < v.size(); i++) {
+            std::cout << YELLOW <<  "(" << i << "): " << RESET << "Coordinate: " << v[i] << "  " << theGrid[v[i].x][v[i].y]->getName() << std::endl;
+        }
+        char opt = 'n';
+        int numOpt;
+        while (true) {
+            std::cin >> numOpt;
+            if (std::cin.fail()) {
+                std::cin.clear();
+                std::cin >> opt;
+                if (opt != 's') {
+                    std::cout << "Invalid option, please select again" << std::endl;
+                    continue;
+                }
+                break;
+            } else {
+                if (numOpt < 0 || numOpt >= (int)v.size()) {
+                    std::cout << "Invalid option, please select again" << std::endl;
+                    continue;
+                }
+                break;
+            }
+        }
+        if (opt == 's') {
+            v.clear();
+            return false; // skip the selection (do not attack any NPC)
+        } else {
+            v.clear();
+            PCAttack(v[numOpt]);
+            return false;
+        }
+        v.clear();
+        return false;
+    } 
+    v.clear();
+
+    int potionCount = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (theGrid[PCLocation.x + i][PCLocation.y + j]->getName() == "Potion") {
+                potionCount++;
+            }
+        }
+    }
+    if (potionCount > 0) {
+        actionLog.emplace_back("PC meets " + std::to_string(potionCount) + " unknown Potion.");
+    }
+    return false;
+}
+
+
+void Grid::countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v) {
+	for (int i = -1; i <= 1; i++) {
+		for (int j = -1; j <= 1; j++) {
+			if (!(i == 0 && j == 0) && theGrid[cdn.x + i][cdn.y + j]->getType() == "NPC") {
+				v.emplace_back(Coordinate{cdn.x + i, cdn.y + j});
+			}
+		}
+	}
+}
+
+
+void Grid::PCAttack(Coordinate cdn) {
+    if (theGrid[cdn.x][cdn.y]->getType() == "NPC") {
+        int def = theGrid[cdn.x][cdn.y]->getDefence();
+        int dmg = theGrid[PCLocation.x][PCLocation.y]->attack(def);
+        theGrid[cdn.x][cdn.y]->attacked(dmg);
+        /*
+        if (theGrid[cdn.x][cdn.y]->getHP() <= 0) {
+            delete theGrid[cdn.x][cdn.y];
+            theGrid[cdn.x][cdn.y] = new Floor{cdn};
+        }
+        */
+        actionLog.emplace_back("PC deals " + std::to_string(dmg) + " HP damage to " + theGrid[cdn.x][cdn.y]->getName() + ".");
+    } else {
+        throw std::runtime_error("There is no NPC at the position you are attacking.");
+    }
+}
+
+
+
+void Grid::usePotion(Coordinate cdn) {
+    if (theGrid[cdn.x][cdn.y]->getName() == "Potion") {
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                } else if (cdn.x + i == PCLocation.x && cdn.y + j == PCLocation.y) {
+                    int code = theGrid[cdn.x][cdn.y]->state();
+                    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
+                    theGrid[cdn.x][cdn.y] = std::make_shared<Floor> (cdn);
+                    setState(std::pair<Coordinate,char>{cdn, '.'});
+                    td->notify(*this);
+                    // Debugger
+                    //std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
+                    actionLog.emplace_back("PC uses Potion: " + codeTranslator(code) + ".");
+
+                    try {
+                        p->applyEffect(code);
+                        // Debugger
+                        std::cout << RED << "Effect: " << codeTranslator(code) << RESET << std::endl;
+                    }
+                    catch (std::runtime_error& errorMsg) {
+                        // Debugger
+                        std::cout << RED << "Effect: " << errorMsg.what() << RESET << std::endl;
+                        actionLog.emplace_back(errorMsg.what());
+                    }
+                    break;
+                }
+            }
+        }
+    } else {
+        throw std::runtime_error("There is no Potion at the position you are trying to use potion.");
+    }
+}
+
+void Grid::printState(int floorNum) const {
+    std::cout << *td;
+    PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
+    std::cout << CYAN << "Race: " << race << RESET << "                                                            Floor " << floorNum << std::endl;
+    std::cout << YELLOW << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
+    std::cout << "Total Score: " << std::setprecision(3) << PC::totalCoin << RESET << std::endl; 
+    std::cout << GREEN << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << RESET << std::endl;
+    std::cout << CYAN << "Barrier Suit Status:    ";
+    if (p->getWithBarrierSuit()) {
+        std::cout << GREEN << "<ACQUIRED>" << RESET;
+    } else {
+        std::cout << RED << "<NOT ACQUIRED>" << RESET;
+    }
+    std::cout << std::endl;
+    std::cout << CYAN << "Compass Status:         ";
+    if (p->getWithCompass()) {
+        std::cout << GREEN << "<ACQUIRED>" << RESET;
+    } else {
+        std::cout << RED << "<NOT ACQUIRED>" << RESET;
+    }
+    std::cout << std::endl;
+    std::cout << RED << "NPCs around PC: " << RESET << std::endl;
+    for (int i = -2; i <= 2; i++) {
+        for (int j = -2; j <= 2; j++) {
+            if (theGrid[PCLocation.x + i][PCLocation.y + j]->getType() == "NPC") {
+                NPC* n = dynamic_cast<NPC*>(theGrid[PCLocation.x + i][PCLocation.y + j].get());
+                std::cout << "  " << RED << n->getName() << " (" << PCLocation.x + i << "," <<  PCLocation.y + j << "): " << "HP: " << n->getHP() << "   "  << "Atk: " << n->getAtk() << "   "  << "Def: " << n->getDef() << RESET << std::endl;
+            }
+        }
+    }
+}
+
+void Grid::buyPotion(std::string dir) {
+    int x = getPCLocation().x;
+    int y = getPCLocation().y;
+    std::vector<Coordinate> v;
+    char c;
+    countNeighbour(PCLocation, v);
+    if (Merchant::hatred != 0) return;
+    for (size_t i = 0; i < v.size(); i++) { // Freeze all the merchants 1 unit around PC
+        if (theGrid[v[i].x][v[i].y]->getName() == "Merchant") {
+            dynamic_cast<NPC*>(theGrid[v[i].x][v[i].y].get())->setMoved();
+        }
+    }
+    Coordinate l = convertCdn(getPCLocation(), dir);
+    if (theGrid[l.x][l.y]->getName() == "Merchant") {
+		std::cout << "Each potion costs 5 coins" << std::endl;
+        for (int i = 0; i < 3; i++) {
+            int effect = dynamic_cast<Merchant*>(theGrid[l.x][l.y].get())->potions[i];
+            std::cout << "(" << std::to_string(i + 1) << "): " << codeTranslator(effect) << std::endl;
+        }
+        std::cout << "Please enter the corresponding number to buy potion, or enter 's' to skip >>>" << std::endl;
+        // reading in option
+        while (std::cin >> c) {
+            if (c == 's') break;
+            if (c == '1' || c == '2' || c == '3') {
+                if (PC::coin >= 5) { // If PC has enough money to buy this potion
+                    PC::coin -= 5;
+                    int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y].get())->potions[c - '1'];
+                    dynamic_cast<PC*>(theGrid[x][y].get())->applyEffect(potionBought);
+                    std::cout << "Potion bought successfully." << std::endl;
+                } else {
+                    std::cout << "Not enough gold! Transaction cancelled." << std::endl;
+                }
+            } else {
+                std::cout << "Incorrect number! Please try again!" << std::endl;
+                continue;
+            }
+			std::cout << "Enter any number to continue, or press s to escape >>>" << std::endl;
+        }        
+    } else {
+        throw std::runtime_error("There is no Merchant at PC's " + directionCalculator(PCLocation, l) + " direction.");
+    }
+}
+
+
+
+int Grid::getHP() {
+    return theGrid[PCLocation.x][PCLocation.y]->getHP();
+}
+
+Coordinate& Grid::getPCLocation() {
+    return PCLocation;
+}
+#include "human.h"
+
+Human::Human(Coordinate cdn): PC{cdn} {
+    HP = 140;
+    maxHP = 140;
+    Atk = 20;
+    Def = 20;
+}
+
+std::string Human::getName() const { return "Human"; }
+
+
+#include "item.h"
+
+Item::Item(Coordinate cdn, bool canStepOn): Cell{cdn}, canStepOn{canStepOn} { }
+
+std::string Item::getType() const { return "Item"; }
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <stdexcept>
+#include <chrono>
+#include <algorithm>
+#include <random>
+#include <iomanip>
+#include "grid.h"
+#include "termcodes.h"
+#include "pc.h"
+#include "coordinate.h"
+using namespace std;
+
+// Helper
+void printIntroMsg() {
+	std::cout << "Please select your PC character:" << std::endl;
+    std::cout << "Options:" << std::endl;
+    std::cout << "(1) Human" << YELLOW << "(h)" << RESET << ": HP:140  Attack:20  Defence:20" << std::endl;
+    std::cout << "(2) Dwarf" << YELLOW << "(d)" << RESET << ": HP:100  Attack:20  Defence:30    <gold X2>" << std::endl;
+    std::cout << "(3) Elves" << YELLOW << "(e)" << RESET << ": HP:140  Attack:30  Defence:10    <negative potions have positive effects>" << std::endl;
+    std::cout << "(4) Orc  " << YELLOW << "(o)" << RESET << ": HP:180  Attack:30  Defence:25    <gold X0.5>" << std::endl;
+    std::cout << ">>> Please enter 'h', 'd', 'e', or 'o'" << std::endl;
+}
+
+
+void printMaps(vector<vector<string>>& maps) {
+	for (size_t i = 0; i < maps.size(); i++) {
+		std::cout << GREEN << "Floor: " << i + 1 << RESET << std::endl;
+		std::cout << "Size: " << maps[i].size() << std::endl;
+		for (size_t j = 0; j < maps[i].size(); j++) {
+			std::cout << maps[i][j] << std::endl;
+		}
+	}
+
+}
+
+void printMap(vector<string>& m) {
+	std::cout << "Size: " << m.size() << std::endl;
+	for (size_t i = 0; i < m.size(); i++) {
+		std::cout << GREEN << m[i] << RESET << std::endl;
+	}
+
+}
+
+void printInfoList(vector<vector<Info>> lst) {
+	std::cout << "Level num: " << lst.size() << std::endl;
+	for (size_t i = 0; i < lst.size(); i++) {
+		std::cout << "Level: " << i << std::endl;
+		std::cout << "Contents: " << lst[i].size() << std::endl;
+		for (size_t j = 0; j < lst[i].size(); j++) {
+			Info curr = lst[i][j];
+			std::cout << "Coordinate: " << curr.cdn << " Item: " << curr.item << " effect: " << curr.effectCode << std::endl;
+		}
+	}
+}
+
+
+
+
+
+int main(int argc, char* argv[]) {
+    string fileName = "defaultFloor.txt";
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	if (argc >= 2) {
+		fileName = argv[1];
+	}
+	if (argc >= 3) {
+		istringstream iss{argv[2]};
+		iss >> seed;
+	}
+	vector<string> flags;
+	if (argc > 3) {
+		for (int i = 3; i < argc; i++) {
+			string s = argv[i];
+			flags.emplace_back(s);
+		}
+	}
+
+	
+
+    // Step 1: Read in maps and store them in vector<vetor<string>> maps where each string represents each line
+    std::ifstream ifs;
+    ifs.open(fileName, std::ios::in);
+    string s;
+	std::vector<string> tempRecord;
+	while (getline(ifs, s)) {
+		tempRecord.emplace_back(s);
+	}
+	cin.clear();
+
+    string startLine;
+    vector<vector<string>> maps;
+    int floorIndex = 1;
+    int PCFloorIndex = 6;
+	bool foundPC = false;
+	bool foundBS = false;
+    int index = 0;
+    vector<string> tempMap;
+
+
+	for (size_t i = 0; i < tempRecord.size(); i++) {
+		s = tempRecord[i];
+		if (index == 0) {
+			startLine = s;
+		} else if (s == startLine) {
+			tempMap.emplace_back(s);
+			maps.emplace_back(tempMap);
+			tempMap.clear();
+			floorIndex++;
+			index = 0;
+			if (foundBS && !foundPC) {
+				foundBS = false;
+			}
+			continue;
+		}
+
+		if (!foundPC) {
+			for (size_t j = 0; j < tempRecord[i].size(); j++) {
+				if (tempRecord[i][j] == '@') {
+					PCFloorIndex = floorIndex;
+					foundPC = true;
+				} else if (tempRecord[i][j] == 'B') {
+					foundBS = true;
+				}
+			}
+		}
+		tempMap.emplace_back(s);
+		index++;
+    }
+
+
+
+
+	// Step 2: Call the corresponding constructor to initialize the game Grid
+
+
+	// CASE 1: If no floor file argument, then play the random-generated game
+	// Print out welcome message
+	std::cout << "WELCOME TO THE GAME OF CHAMBERCRAWLER3000+!" << std::endl;
+	printIntroMsg();
+	char pc;
+	// Player character selection
+	while (cin >> pc) {
+		if (pc == 'h' || pc == 'd' || pc == 'e' || pc == 'o') {
+			break;
+		} else {
+			std::cout << "Invalid input, please input the correct character" << std::endl;
+		}
+	}
+
+
+	int currFloor = 1; // Current floor number
+	if (foundPC) {
+		currFloor = PCFloorIndex;
+	}
+ 
+	int barrierFloor = 0;
+	if (foundPC && !foundBS && PCFloorIndex != 5) {
+		std::vector<int> n; 
+		for (int i = PCFloorIndex; i <= 5; i++) {
+			n.emplace_back(i);
+		}
+		std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+		barrierFloor = n[0];
+		n.clear();
+	} else if (!foundPC) {
+		std::vector<int> n; 
+		for (int i = 1; i <= 5; i++) {
+			n.emplace_back(i);
+		}
+		std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+		barrierFloor = n[0];
+		n.clear();
+	}
+
+	// Debugger
+	//std::cout << "Barrier Suit floor: " << barrierFloor << std::endl;
+	//std::cout << "PCFloorIndex: " << PCFloorIndex << std::endl;
+	//std::cout << "Seed: " << seed << std::endl;
+	//std::cout << "PC: " << pc << std::endl;
+
+	// Create new Grid object (game)
+	std::shared_ptr<Grid> g;
+
+	if (!foundPC) {
+		// Debugger
+		std::cout << "Maps size: " << maps.size() << std::endl;
+		g = std::make_shared<Grid> (maps[0], seed, pc, currFloor == barrierFloor, &flags);
+	} else {
+		g = std::make_shared<Grid> (maps[PCFloorIndex - 1], seed, pc, &flags);
+	}
+	g->printState(currFloor);
+
+
+	// Game starts
+	char cmd;
+	while (cin >> cmd) {
+		// Moving Player Character
+		if (cmd == 'n' || cmd == 's' || cmd == 'e' || cmd == 'w') {
+			try {
+				string direction = "";
+				direction += cmd;
+				cin >> cmd;
+				if (cin.fail()) throw runtime_error("Incorrect direction format!");
+				direction += cmd;
+				Coordinate destination = convertCdn(g->getPCLocation(), direction);
+				if (g->moveTo(destination)) {
+					if (currFloor == 5) {
+						// Debugger
+						// cout << YELLOW << "You Win! Your Score is: " << PC::totalCoin << endl;
+						g->actionLog.emplace_back("You Win!");
+						break;
+					}
+
+					currFloor += 1;
+					// Debugger
+					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
+					g = std::make_shared<Grid> (maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags);
+					
+					g->printState(currFloor);
+				}
+			} catch (runtime_error& errorMsg) {
+				cout << errorMsg.what() << endl;
+				continue;
+			}
+		} else if (cmd == 'u') {
+			try{
+				string direction;
+				cin >> direction;
+				if (cin.fail()) throw runtime_error("Incorrect direction format!");
+				Coordinate destination = convertCdn(g->getPCLocation(), direction);
+				// Debugger
+				std::cout << "Current PC Location: " << g->getPCLocation() << std::endl;
+				std::cout << "Accessing cdn: " << destination << std::endl;
+
+				g->usePotion(destination);
+			} catch (runtime_error& errorMsg) {
+				cout << errorMsg.what() << endl;
+				continue;
+			}
+
+		} else if (cmd == 'a') {
+			try{
+				string dir;
+				cin >> dir;
+				if (cin.fail() || (dir != "no" && dir != "so" && dir != "we" && dir != "ea" && dir != "nw" && dir != "ne" && dir != "sw" && dir != "se")) {
+					throw runtime_error("Incorrect direction format!");
+				}
+				Coordinate destination = convertCdn(g->getPCLocation(), dir);
+				g->PCAttack(destination);
+			} catch (runtime_error& errorMsg) {
+				cout << errorMsg.what() << endl;
+				continue;
+			}
+
+		} else if (cmd == 'q') {
+			std::cout << CYAN << "##### " << left << setw(45) << setfill(' ') << "GAME OVER! Defeated! (Player quits the game)" << right << setw(5) << "#####" << std::endl;
+			std::cout << "##### TOTAL SCORE: " << left << setw(32) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
+			break;
+
+
+		} else if (cmd == 'r') {
+			currFloor = 1;
+			if (PCFloorIndex != 6) {
+				currFloor = PCFloorIndex;
+			}
+
+			std::vector<int> n;
+			for (int i = 1; i <= 5; i++) {
+				n.emplace_back(i + 1);
+			}
+			std::shuffle(n.begin(), n.end(), std::default_random_engine{seed});
+			int barrierFloor = n[0];
+			n.clear();
+			printIntroMsg();
+			// Player character reselection
+			while (cin >> pc) {
+				if (pc == 'h' || pc == 'd' || pc == 'e' || pc == 'o') {
+					break;
+				} else {
+					std::cout << "Invalid input, please input the correct character" << std::endl;
+				}
+			}
+			// Reassign/regenerate seed
+			/*
+			if (argc == 3) {
+				string s = argv[2];
+				istringstream iss{s};
+				iss >> seed;
+			} else { // if not specified, use random seed
+				seed = std::chrono::system_clock::now().time_since_epoch().count();
+			}
+			*/
+			if (!foundPC) {
+				g = std::make_shared<Grid> (maps[currFloor - 1], seed, pc, currFloor == barrierFloor, &flags);
+			} else {
+				g = std::make_shared<Grid> (maps[currFloor - 1], seed, pc, &flags);
+			}
+			g->printState(currFloor);
+			continue;
+		}
+		
+		else if (cmd == 'b') {
+			string s = "";
+			try {
+				cin >> cmd;
+				s += cmd;
+				cin >> cmd;
+				s += cmd;
+				g->buyPotion(s);
+				//g->updateGrid();
+			} catch (std::runtime_error& msg) {
+				std::cout << msg.what() << std::endl;
+				continue;
+			}
+		}
+		
+		else if (cmd == '+') {
+			string f;
+			cin >> f;
+			flags.emplace_back(f);
+			std::cout << "New flag: \"" << f << "\" has been deployed." << std::endl;
+			continue;
+		}
+
+		else if (cmd == '-') {
+			string f;
+			cin >> f;
+			bool found = false;
+			for (size_t i = 0; i < flags.size(); i++) {
+				if (flags[i] == f) {
+					flags.erase(flags.begin() + i);
+					std::cout << "Flag: \"" << f << "\" has been undeployed." << std::endl;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				std::cout << "No flag called \"" << f << "\" has been deployed, please check your spelling." << std::endl;
+				continue;
+			}
+		}
+		
+		
+		else {
+			std::cout << "Invalid command, please try again!" << std::endl;
+			continue;
+		}
+
+		// NPC's round & Grid update
+		g->updateGrid();
+		g->printState(currFloor);
+		std::cout << "Actions:" << std::endl;
+		for (size_t i = 0; i < g->actionLog.size(); i++) {
+			std::cout << g->actionLog[i] << std::endl;
+		}
+		g->actionLog.clear();
+
+		if (g->getHP() == 0) {
+			std::cout << CYAN << "##### " << left << setw(22) << setfill(' ') << "GAME OVER! Defeated!" << right << setw(5) << "#####" << std::endl;
+			std::cout << "##### TOTAL SCORE: " << left << setw(9) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
+			break;
+		}
+
+	}
+
+	return 0;
+
+}
+#include "mapelement.h"
+
+MapElement::MapElement(Coordinate cdn): Cell{cdn} { }
+
+std::string MapElement::getType() const {
+    return "MapElement";
+}
+
+int MapElement::state() {
+    return -1;
+}
+#include <math.h>
+#include "merchant.h"
+#include <random>
+#include <chrono>
+#include <algorithm>
+int Merchant::hatred = 0;
+
+Merchant::Merchant(Coordinate cdn): NPC{cdn} {
+    HP = 30;
+    Atk = 70;
+    Def = 5;
+    std::vector<int> randPotions;
+    for (int i = 0; i < 6; i++) {
+        randPotions.emplace_back(i + 1);
+    }
+    std::shuffle(randPotions.begin(), randPotions.end(), std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+    for (int i = 0; i < 3; i++) {
+        potions.emplace_back(randPotions[i]);
+    }
+    randPotions.clear();
+}
+
+
+void Merchant::resetHatred() {
+    Merchant::hatred = 0;
+}
+
+void Merchant::setHatred() {
+    if (Merchant::hatred == 0) {
+        Merchant::hatred = 1;
+    }
+}
+
+int Merchant::attack(int PCDefence) const { 
+    if (Merchant::hatred == 0) {
+        return 0;
+    }
+    return ceil(((double)100 / (100 + PCDefence)) * Atk); 
+}
+
+std::string Merchant::getName() const {
+    return "Merchant";
+}
+
+
+int Merchant::attacked(int dmg) {
+    Merchant::hatred = 1;
+    int actualDmg = dmg;
+    if (HP - actualDmg <= 0) {
+        actualDmg = HP;
+        HP = 0;
+        return actualDmg;
+    }
+    HP -= actualDmg;
+    return actualDmg;
+}
+
+
+Merchant::~Merchant() {
+    potions.clear();
+}
+#include <math.h>
+#include "npc.h"
+
+int NPC::currInitState = 0;
+
+NPC::NPC(Coordinate cdn) : Cell{cdn} { }
+
+int NPC::getDefence() const { return Def; }
+
+int NPC::attack(int PCDefence) const { return ceil((double)100 / (100 + PCDefence) * Atk); }
+
+int NPC::attacked(int dmg) { // returns the actual damage to NPC
+    int actualDmg = dmg;
+    if (HP - actualDmg <= 0) {
+        actualDmg = HP;
+        HP = 0;
+        return actualDmg;
+    }
+    HP -= actualDmg;
+    return actualDmg;
+}
+
+std::string NPC::getType() const { return "NPC"; }
+
+int NPC::state() { return moved; }
+
+void NPC::setMoved() {
+    if (moved == 1) {
+        moved = 0;
+    } else {
+        moved = 1;
+    }
+}
+
+int NPC::getHP() const { return HP; }
+int NPC::getAtk() const { return Atk; }
+int NPC::getDef() const { return Def; }
+
+void NPC::setWithCompass(bool b) {
+    withCompass = b;
+}
+
+
+bool NPC::getWithCompass() const {
+    return withCompass;
+}
+
+void NPC::halfHP() {
+    HP /= 2;
+}
+
+void NPC::moreAtk() {
+    Atk *= 1.5;
+}
+#include "orc.h"
+
+Orc::Orc(Coordinate cdn): PC{cdn} {
+    HP = 180;
+    maxHP = 180;
+    Atk = 30;
+    Def = 25;
+}
+
+std::string Orc::getName() const { return "Orc"; }
+
+void Orc::applyEffect(int effect) {
+    if (effect == 0) { // Restore Health
+        if (HP + 10 > maxHP) {
+            HP = maxHP;
+        } else {
+            HP += 10;
+        }
+    } else if (effect == 1) { // Boost Atk
+        potionAtkEffect += 5;
+    } else if (effect == 2) { // Boost Def
+        potionDefEffect += 5;
+    } else if (effect == 3) { // Poison Health
+        if (HP - 10 <= 0) {
+            HP = 0;
+        } else {
+            HP -= 10;
+        }
+    } else if (effect == 4) { // Wound Atk
+        potionAtkEffect -= 5;
+    } else if (effect == 5) { // Wound Def
+        potionDefEffect -= 5;
+    } else if (effect == 6) { // Normal gold pile
+        coin += (double)1 / 2;
+        totalCoin += (double)1 / 2;
+    } else if (effect == 7) { // Small Horde
+        coin += 2 / 2;
+        totalCoin += 2 / 2;
+    } else if (effect == 8) { // Merchant Hoard
+        coin += 4 / 2;
+        totalCoin += 4 / 2;
+    } else if (effect == 9) { // Dragon Hoard
+        coin += 6 / 2;
+        totalCoin += 6 / 2;
+    } else if (effect == 10) { // Barrier Suit acquired
+        withBarrierSuit = true;
+    } else if (effect == 11) { // Compass acquired
+        withCompass = true;
+    }
+}
+
+void Orc::applyElimNPCAward() {
+    PC::coin += 0.5;
+    PC::totalCoin += 0.5;
+}
+
+#include "passage.h"
+Passage::Passage(Coordinate cdn, int passageType): MapElement{cdn}, passageType{passageType} { }
+
+bool Passage::canStep() { return true; }
+
+std::string Passage::getName() const { return "Passage"; }
+
+int Passage::state() { return passageType; }
+#include <math.h>
+#include "pc.h"
+
+int PC::onTile = -1;
+double PC::coin = 0;
+double PC::totalCoin = 0;
+
+PC::PC(Coordinate cdn, bool withCompass, bool withBarrierSuit): Cell{cdn}, withCompass{withCompass}, withBarrierSuit{withBarrierSuit} {}
+
+int PC::getDefence() const { return Def; }
+
+int PC::attack(int NPCDefence) const { return ceil(((double)100 / (100 + NPCDefence)) * (Atk + potionAtkEffect)); }
+
+int PC::attacked(int dmg) { // returns the actual damage to PC
+    int actualDmg = dmg;
+    if (withBarrierSuit) {
+        actualDmg = ceil((double)dmg / 2);
+    }
+    if (HP - actualDmg <= 0) {
+        actualDmg = HP;
+        HP = 0;
+        return actualDmg;
+    }
+    HP -= actualDmg;
+    return actualDmg;
+}
+
+void PC::applyEffect(int effect) {
+    if (effect == 0) { // Restore Health
+        // Debugger
+        std::cout << "Found a Restore Health potion" << std::endl;
+        if (HP + 10 > maxHP) {
+            HP = maxHP;
+            std::cout <<"Maximum HP reached, restoring to max HP" << std::endl;
+        } else {
+            HP += 10;
+        }
+    } else if (effect == 1) { // Boost Atk
+        // Debugger
+        std::cout << "Found a Boost Atk potion" << std::endl;
+        potionAtkEffect += 5;
+    } else if (effect == 2) { // Boost Def
+        // Debugger
+        std::cout << "Found a Boost Def potion" << std::endl;
+        potionDefEffect += 5;
+    } else if (effect == 3) { // Poison Health
+        // Debugger
+        std::cout << "Found a Poison Health potion" << std::endl;
+        if (HP - 10 <= 0) {
+            HP = 0;
+        } else {
+            HP -= 10;
+        }
+    } else if (effect == 4) { // Wound Atk
+        // Debugger
+        std::cout << "Found a Wound Atk potion" << std::endl;
+        potionAtkEffect -= 5;
+        if (Atk - potionAtkEffect < 0) {
+            potionAtkEffect = -Atk;
+        }
+    } else if (effect == 5) { // Wound Def
+        // Debugger
+        std::cout << "Found a Wound Def potion" << std::endl;
+        potionDefEffect -= 5;
+        if (Def - potionDefEffect < 0) {
+            potionDefEffect = -Def;
+        }
+    } else if (effect == 6) { // Normal gold pile
+        // Debugger
+        std::cout << "Found a Normal gold pile" << std::endl;
+        coin += 1;
+        totalCoin += 1;
+    } else if (effect == 7) { // Small Horde
+        // Debugger
+        std::cout << "Found a Small Horde" << std::endl;
+        coin += 2;
+        totalCoin += 2;
+    } else if (effect == 8) { // Merchant Hoard
+        // Debugger
+        std::cout << "Found a Merchant horde" << std::endl;
+        coin += 4;
+        totalCoin += 4;
+    } else if (effect == 9) { // Dragon Hoard
+        // Debugger
+        std::cout << "Found a Dragon Hoard" << std::endl;
+        coin += 6;
+        totalCoin += 6;
+    } else if (effect == 10) { // Barrier Suit acquired
+        // Debugger
+        std::cout << "Found a BarrierSuit" << std::endl;
+        withBarrierSuit = true;
+    } else if (effect == 11) { // Compass acquired
+        // Debugger
+        std::cout << "Found a Compass" << std::endl;
+        withCompass = true;
+    }
+}
+
+std::string PC::getType() const { return "PC"; }
+
+int PC::state() { return moved; }
+
+int PC::getHP() const { return HP; }
+int PC::getAtk() const { return Atk + potionAtkEffect; }
+int PC::getDef() const { return Def + potionDefEffect; }
+bool PC::getWithBarrierSuit() const { return withBarrierSuit; }
+
+void PC::resetCoin() {
+    PC::coin = 0;
+    PC::totalCoin = 0;
+}
+
+void PC::applyElimNPCAward() {
+    PC::coin += 1;
+    PC::totalCoin += 1;
+}
+
+bool PC::getWithCompass() const {
+    return withCompass;
+}
+
+#include "phoenix.h"
+
+Phoenix::Phoenix(Coordinate cdn) : NPC{cdn} {
+    HP = 50;
+    Atk = 35;
+    Def = 20;
+}
+
+std::string Phoenix::getName() const {
+    return "Phoenix";
+}
+#include "potion.h"
+
+int Potion::state() { return effect; }
+
+std::string Potion::getName() const { return "Potion"; }
+
+Potion::Potion(Coordinate cdn, int effect) : Item{cdn}, effect{effect} { }
+#include "stair.h"
+
+Stair::Stair(Coordinate cdn, bool revealed):
+    MapElement{cdn}, revealed{revealed} { }
+
+int Stair::state() {
+    if (revealed) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void Stair::notify(Subject& whoNotified) {
+    revealed = true;
+}
+
+std::string Stair::getName() const { return "Stair"; }
+
+#include <utility>
+#include "subject.h"
+
+void Subject::notifyObserver() { ob->notify(*this); }
+
+void Subject::attach(Observer* _ob) { ob = _ob; }
+
+std::pair<Coordinate, char> Subject::getState() const { return state; }
+
+void Subject::setState(std::pair<Coordinate, char> newState) { state = newState; }
+
+#include <vector>
+#include <iostream>
+#include <memory>
+#include "textdisplay.h"
+#include "cell.h"
+#include "subject.h"
+#include "coordinate.h"
+#include "termcodes.h"
+
+TextDisplay::TextDisplay(std::vector<std::vector<std::shared_ptr<Cell>>>& g) {
+    int height = g.size();
+    for (int i = 0; i < height; i++) {
+        int width = g[i].size();
+        std::vector<char> tempRow;
+        for (int j = 0; j < width; j++) {
+            std::string name = g[i][j]->getName();
+            if (name == "Wall") {
+                int walltype = g[i][j]->state();
+                if (walltype == 1) {
+                    tempRow.emplace_back('|');
+                } else if (walltype == 2) {
+                    tempRow.emplace_back('-');
+                } else if (walltype == 3) {
+                    tempRow.emplace_back(' ');
+                }
+            } else if (name == "Passage") {
+                int passagetype = g[i][j]->state();
+                if (passagetype == 1) {
+                    tempRow.emplace_back('#');
+                } else if (passagetype == 2) {
+                    tempRow.emplace_back('+');
+                }
+            } else if (name == "Floor") {
+                tempRow.emplace_back('.');
+            }
+        }
+        grid.emplace_back(tempRow);
+    }
+}
+
+void TextDisplay::notify(Subject& whoNotified) {
+    Coordinate cdn = whoNotified.getState().first;
+    char updatedChar = whoNotified.getState().second;
+    grid[cdn.x][cdn.y] = updatedChar;
+}
+
+std::ostream& operator<<(std::ostream& out, TextDisplay& td) {
+    int height = td.grid.size();
+    for (int i = 0; i < height; i++) {
+        int width = td.grid[i].size();
+        for (int j = 0; j < width; j++) {
+            if (td.grid[i][j] == '@') {
+                out << YELLOW << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'V' || td.grid[i][j] == 'W' ||td.grid[i][j] == 'N' ||td.grid[i][j] == 'M' ||td.grid[i][j] == 'D' ||td.grid[i][j] == 'X' ||td.grid[i][j] == 'T') {
+                out << BOLDRED << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'G' || td.grid[i][j] == 'B') {
+                out << BOLDGREEN << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == 'P') {
+                out << BOLDCYAN << td.grid[i][j] << RESET;
+            } else if (td.grid[i][j] == '\\') {
+                out << BOLDWHITE << td.grid[i][j] << RESET;
+            } else {
+                out << td.grid[i][j];
+            }
+        }
+        out << std::endl;
+    }
+    return out;
+}
+
+
+TextDisplay::~TextDisplay() {
+    int height = grid.size();
+    for (int i = 0; i < height; i++) {
+        grid[i].clear();
+    }
+    grid.clear();
+}
+
+#include "treasure.h"
+
+Treasure::Treasure(Coordinate cdn, int treasure) : Item{cdn, treasure != 9}, treasure{treasure} { }
+
+void Treasure::notify(Subject &Dragon) { canStepOn = true; }
+
+std::string Treasure::getName() const { return "Treasure"; }
+
+int Treasure::state() { return treasure; }
+
+bool Treasure::canStep() {
+	return canStepOn;
+}
+
+#include "troll.h"
+
+Troll::Troll(Coordinate cdn) : NPC{cdn} {
+    HP = 120;
+    Atk = 25;
+    Def = 15;
+}
+
+std::string Troll::getName() const {
+    return "Troll";
+}
+#include "vampire.h"
+
+Vampire::Vampire(Coordinate cdn) : NPC{cdn} {
+    HP = 50;
+    Atk = 25;
+    Def = 25;
+}
+
+std::string Vampire::getName() const {
+    return "Vampire";
+}
+#include "wall.h"
+
+Wall::Wall(Coordinate cdn, int wallType): MapElement{cdn}, wallType{wallType} { }
+
+std::string Wall::getName() const {
+    return "Wall";
+}
+
+int Wall::state() { return wallType; }
+
+#include "werewolf.h"
+
+Werewolf::Werewolf(Coordinate cdn) : NPC{cdn} {
+    HP = 120;
+    Atk = 30;
+    Def = 5;
+}
+
+std::string Werewolf::getName() const {
+    return "Werewolf";
+}
+#ifndef __BARRIERSUIT_H_
+#define __BARRIERSUIT_H_
+#include "item.h"
+#include "observer.h"
+
+class BarrierSuit : public Item, public Observer {
+public:
+  int state() override;
+  void notify(Subject &Dragon) override;
+  std::string getName() const override;
+  BarrierSuit(Coordinate cdn);
+  bool canStep() override;
+};
+
+#endif
+#ifndef __CELL_H_
+#define __CELL_H_
+#include <iostream>
+#include "coordinate.h"
+
+class Cell {
+    Coordinate cdn;
+public:
+    Cell(Coordinate cdn);
+    void setCdn(Coordinate c);
+    virtual int state() = 0;
+    virtual std::string getType() const = 0;
+    virtual std::string getName() const = 0;
+    virtual int getHP() const;
+    virtual bool canStep();
+    virtual int attack(int def) const;
+    virtual int attacked(int dmg);
+    virtual int getDefence() const;
+    virtual ~Cell();
+};
+
+#endif
+
+
+#ifndef _COMPASS_H_
+#define _COMPASS_H_
+#include "item.h"
+
+
+class Compass : public Item {
+public:
+  int state() override;
+  std::string getName() const override;
+  Compass(Coordinate cdn);
+  bool canStep() override;
+};
+
+#endif
+#ifndef __COORDINATE_H__
+#define __COORDINATE_H__
+#include <iostream>
+
+struct Coordinate {
+    int x;
+    int y;
+};
+
+std::ostream& operator<<(std::ostream& out, Coordinate& cdn);
+
+bool operator<(const Coordinate cdn1, const Coordinate cdn2);
+
+#endif
+#ifndef __DRAGON_H_
+#define __DRAGON_H_
+#include "npc.h"
+#include "subject.h"
+#include "barriersuit.h"
+#include "treasure.h"
+
+class Dragon : public NPC, public Subject {
+public: 
+    Dragon(Coordinate cdn);
+    Dragon(Coordinate cdn, Treasure* t);
+    Dragon(Coordinate cdn, BarrierSuit* b);
+    std::string getName() const override;
+};
+
+#endif
+#ifndef __DWARF_H__
+#define __DWARF_H__
+#include "pc.h"
+
+class Dwarf: public PC {
+public:
+    Dwarf(Coordinate cdn);
+    std::string getName() const override;
+    void applyEffect(int effect) override;
+    void applyElimNPCAward() override;
+};
+
+#endif
+#ifndef __ELF_H__
+#define __ELF_H__
+#include "pc.h"
+
+class Elf: public PC {
+public:
+    Elf(Coordinate cdn);
+    std::string getName() const override;
+    void applyEffect(int effect) override;
+};
+
+#endif
+#ifndef __FLOOR_H__
+#define __FLOOR_H__
+#include "mapelement.h"
+
+class Floor: public MapElement {
+public:
+    Floor(Coordinate cdn);
+    bool canStep() override;
+    std::string getName() const override;
+};
+
+
+#endif
+#ifndef __GOBLIN_H_
+#define __GOBLIN_H_
+#include "npc.h"
+
+class Goblin : public NPC {
+public: 
+    Goblin(Coordinate cdn);
+    std::string getName() const override;
+};
+
+#endif
+#ifndef __GRID_H_
+#define __GRID_H_
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <chrono>
+#include <string>
+#include "info.h"
+#include "coordinate.h"
+#include "subject.h"
+
+class Cell;
+class TextDisplay;
+
+class Grid: public Subject {
+    std::vector<std::vector<std::shared_ptr<Cell>>> theGrid;
+    std::vector<std::vector<Coordinate>> chambers;
+    int h, w;
+    std::string race;
+    Coordinate PCLocation;
+    Coordinate StairLocation;
+    std::shared_ptr<TextDisplay> td;
+	unsigned seed;
+	int gameDiffLevel;
+	// 0: easy mode (more gold, NPC 1/2 HP)
+	// 1: medium mode (normal mode)
+	// 2: hard mode (less gold, NPC 1.5X Atk) (to be implemented)
+
+    void addChamber(std::vector<std::vector<std::shared_ptr<Cell>>> &tempGrid, Coordinate c, std::vector<Coordinate>& tempChamber);
+    std::vector<Coordinate> countNeighbour(Coordinate& cdn);
+    void countNeighbour(Coordinate& cdn, std::vector<Coordinate>& v);
+    std::vector<std::string> *flags;
+public:
+    std::vector<std::string> actionLog;
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool barrierSuit, std::vector<std::string> *flags);
+    Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::vector<std::string> *flags);
+    void init(char c);
+    Coordinate& getPCLocation();
+    void updatePlayer();
+    void updateGrid();
+    bool canMoveTo(Coordinate cdn);
+    bool canMoveToNPC(Coordinate cdn);
+    bool moveTo(Coordinate newCdn);
+    void usePotion(Coordinate cdn);
+    void PCAttack(Coordinate cdn);
+    void printState(int floorNum) const;
+    ~Grid();
+    void buyPotion(std::string s);
+    int getHP();
+};
+Coordinate convertCdn(const Coordinate& oldCdn, std::string direction);
+#endif
+
+#ifndef __HUMAN_H__
+#define __HUMAN_H__
+#include "pc.h"
+
+class Human: public PC {
+public:
+    Human(Coordinate cdn);
+    std::string getName() const override;
+};
+
+
+
+#endif
+#ifndef __INFO_H__
+#define __INFO_H__
+#include "coordinate.h"
+struct Info {
+    Coordinate cdn;
+    char item;
+    int effectCode;
+};
+
+#endif
+#ifndef __ITEM_H__
+#define __ITEM_H__
+#include "cell.h"
+
+class Item : public Cell {
+protected:
+  bool canStepOn;
+public:
+  std::string getType() const override;
+  Item(Coordinate cdn, bool canStepOn = false);
+};
+
+#endif
+#ifndef __MAPELEMENT_H__
+#define __MAPELEMENT_H__
+
+#include <iostream>
+#include "cell.h"
+
+class MapElement: public Cell {
+public:
+    MapElement(Coordinate cdn);
+    std::string getType() const override;
+    int state() override;
+};
+
+
+
+#endif
+#ifndef __MERCHANT_H_
+#define __MERCHANT_H_
+#include "npc.h"
+#include <vector>
+class Merchant: public NPC {
+    
+public: 
+    std::vector<int> potions;
+    static int hatred; // 0 if not attacked; 1 if attacked
+    static void resetHatred();
+    static void setHatred();
+    Merchant(Coordinate cdn);
+    std::string getName() const override;
+    int attack(int PCDefence) const override;
+    int attacked(int dmg) override;
+    ~Merchant();
+};
+
+#endif
+#ifndef __NPC_H__
+#define __NPC_H__
+#include "cell.h"
+
+class NPC : public Cell {
+protected:
+    int HP;
+    int Atk;
+    int Def;
+    bool withCompass;
+    int moved = 0;
+public:
+    static int currInitState; // if state == currInitState  => NPC has not been moved
+    NPC(Coordinate cdn);
+    int getDefence() const override;
+    int attack(int PCDefence) const override;
+    int attacked(int dmg) override;
+    std::string getType() const override;
+    int state() override;
+    void setMoved();
+    int getHP() const override;
+    int getAtk() const;
+    int getDef() const;
+    void setWithCompass(bool b);
+    bool getWithCompass() const;
+    void halfHP();
+    void moreAtk();
+};
+
+#endif
+#ifndef __OBSERVER_H__
+#define __OBSERVER_H__
+class Subject;
+
+class Observer {
+public:
+    virtual void notify(Subject& whoNotified) = 0;
+    virtual ~Observer() = default;
+};
+
+#endif
+#ifndef __ORC_H__
+#define __ORC_H__
+#include "pc.h"
+
+class Orc: public PC {
+public:
+    Orc(Coordinate cdn);
+    std::string getName() const override;
+    void applyEffect(int effect) override;
+    void applyElimNPCAward() override;
+};
+
+#endif
+#ifndef __PASSAGE_H__
+#define __PASSAGE_H__
+#include "mapelement.h"
+
+class Passage: public MapElement {
+    int passageType; // '#' -> type 1; '+' -> type 2
+public:
+    Passage(Coordinate cdn, int passageType);
+    bool canStep() override;
+    std::string getName() const override;
+    int state() override;
+};
+
+#endif
+#ifndef __PC_H__
+#define __PC_H__
+
+#include "cell.h"
+
+class PC: public Cell {
+protected:
+    int HP;
+    int maxHP;
+    int Atk;
+    int Def;
+    bool withCompass = false;
+    bool withBarrierSuit = false;
+    int potionAtkEffect = 0;
+    int potionDefEffect = 0;
+    int moved = 0;
+public:
+    static int onTile; // -1 if on floor; 1 if on #; 2 if on +
+    static double coin;
+    static double totalCoin;
+    PC(Coordinate cdn, bool withCompass = false, bool withBarrierSuit = false);
+    int getDefence() const override;
+    virtual int attack(int NPCDefence) const;
+    virtual int attacked(int dmg);
+    virtual void applyEffect(int effect);
+    std::string getType() const override;
+    int state() override;
+    int getHP() const override;
+    int getAtk() const;
+    int getDef() const;
+    bool getWithBarrierSuit() const;
+    bool getWithCompass() const;
+    static void resetCoin();
+    virtual void applyElimNPCAward();
+};
+
+#endif
+#ifndef __PHOENIX_H_
+#define __PHOENIX_H_
+#include "npc.h"
+#include "subject.h"
+
+class Phoenix: public NPC {
+public: 
+    Phoenix(Coordinate cdn);
+    std::string getName() const override;
+};
+
+#endif
+#ifndef POTION_H
+#define POTION_H
+#include "item.h"
+
+class Potion : public Item {
+    int effect;
+public:
+  int state() override;
+  std::string getName() const override;
+  Potion(Coordinate cdn, int effect);
+};
+
+#endif
+#ifndef __STAIR_H__
+#define __STAIR_H__
+#include "mapelement.h"
+#include "observer.h"
+
+class Stair: public MapElement, public Observer {
+    bool revealed;
+public:
+    Stair(Coordinate cdn, bool revealed = false);
+    int state() override;
+    void notify(Subject& whoNotified) override;
+    std::string getName() const override;
+};
+
+
+#endif
+#ifndef __SUBJECT_H__
+#define __SUBJECT_H__
+#include "observer.h"
+#include "coordinate.h"
+
+class Subject {
+    Observer* ob;
+    std::pair<Coordinate, char> state; // state pair格式: <发生更改的cell的坐标, 更新后的char>
+public:
+    void notifyObserver();
+    void attach(Observer* _ob);
+    std::pair<Coordinate, char> getState() const;
+    void setState(std::pair<Coordinate, char> newState);
+
+};
+
+#endif
+#ifndef TERMCODES_H 
+#define TERMCODES_H 
+#include <string>
+
+// Use these for the colour version
+const std::string BLACK = "\033[30m";
+const std::string RED =  "\033[31m";
+const std::string GREEN = "\033[32m";
+const std::string YELLOW =  "\033[33m";
+const std::string BLUE = "\033[34m";
+const std::string MAGENTA = "\033[35m";
+const std::string CYAN = "\033[36m";
+const std::string WHITE = "\033[37m";
+
+const std::string BOLDBLACK = "\033[1m\033[30m";
+const std::string BOLDRED = "\033[1m\033[31m";
+const std::string BOLDGREEN = "\033[1m\033[32m";
+const std::string BOLDYELLOW = "\033[1m\033[33m";
+const std::string BOLDBLUE = "\033[1m\033[34m";
+const std::string BOLDMAGENTA = "\033[1m\033[35m";
+const std::string BOLDCYAN = "\033[1m\033[36m";
+const std::string BOLDWHITE = "\033[1m\033[37m";
+
+
+// Use these for the monochrome version
+const std::string UNDERLINE = "\033[4m";
+const std::string REVERSE = "\033[7m";
+
+// Use this for both versions
+const std::string RESET =  "\033[0m";
+#endif
+#ifndef __TEXTDISPLAY_H__
+#define __TEXTDISPLAY_H__
+#include <vector>
+#include <memory>
+#include <iostream>
+#include "observer.h"
+
+class Subject;
+class Cell;
+
+class TextDisplay: public Observer {
+    std::vector<std::vector<char>> grid;
+public:
+    TextDisplay(std::vector<std::vector<std::shared_ptr<Cell>>>& g);
+    void notify(Subject& whoNotified) override;
+    ~TextDisplay();
+    
+    friend std::ostream& operator<<(std::ostream& out, TextDisplay& td);
+};
+
+
+#endif
+#ifndef __TREASURE_H_
+#define __TREASURE_H_
+#include "item.h"
+#include "observer.h"
+
+class Treasure : public Item, public Observer {
+    int treasure; // treasure code (6-normal gold pile, ..., 9-dragon horde)
+
+  public:
+    int state() override;
+    void notify(Subject &Dragon) override;
+    std::string getName() const override;
+    bool canStep() override;
+    Treasure(Coordinate cdn, int treasure);
+};
+
+#endif
+#ifndef __TROLL_H_
+#define __TROLL_H_
+#include "npc.h"
+
+class Troll : public NPC {
+public: 
+    Troll(Coordinate cdn);
+    std::string getName() const override;
+};
+
+#endif
+#ifndef __VAMPIRE_H_
+#define __VAMPIRE_H_
+#include "npc.h"
+
+class Vampire : public NPC {
+public: 
+    Vampire(Coordinate cdn);
+    std::string getName() const override;
+};
+
+#endif
+#ifndef __WALL_H__
+#define __WALL_H__
+#include "mapelement.h"
+
+class Wall: public MapElement {
+    int wallType; // '|' -> type 1;  '-' -> type 2; ' ' -> type 3
+public:
+    Wall(Coordinate cdn, int wallType);
+    std::string getName() const override;
+    int state() override;
+};
+
+
+#endif
+#ifndef __WEREWOLF_H_
+#define __WEREWOLF_H_
+#include "npc.h"
+
+class Werewolf : public NPC {
+public: 
+    Werewolf(Coordinate cdn);
+    std::string getName() const override;
+};
+
+#endif
