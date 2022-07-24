@@ -7,7 +7,7 @@ protected:
     int HP;
     int Atk;
     int Def;
-    bool withCompass;
+    bool withCompass = false;
     int moved = 0;
 public:
     static int currInitState; // if state == currInitState  => NPC has not been moved

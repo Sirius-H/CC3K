@@ -506,7 +506,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
 
     // Step 7: NPC generation
     bool withCompass = true;
-
+    bool compassSetted = false;
     bool showNPC = false;
     char type;
     for (auto s : *flags) {
@@ -525,6 +525,9 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 int x5 = npcChamber[i].x;
                 int y5 = npcChamber[i].y;
                 int ri = randomInt(18, ++seed);
+                if (withCompass == true) {
+                    compassSetted = false;
+                }
                 std::shared_ptr<NPC> n;
                 if (ri < 4) {
                     n = std::make_shared<Werewolf> (npcChamber[i]);
@@ -575,10 +578,12 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                     }
                 }
                 if (showNPC) {
-                    if (!withCompass) {
-                        std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << std::endl;
-                    } else {
+                    if (!withCompass && !compassSetted) {
                         std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << GREEN << "  With Compass" << RESET << std::endl;
+                        compassSetted = true;
+                    } else {
+                        std::cout << "Generated NPC: Coordinate: " << npcChamber[i] << "  Type: " << type << std::endl;
+                        
                     }
                 }
                 td->notify(*this);
