@@ -101,6 +101,7 @@ std::string PC::getType() const { return "PC"; }
 int PC::state() { return moved; }
 
 int PC::getHP() const { return HP; }
+void PC::setHP(int val) { HP = val; }
 int PC::getAtk() const { return Atk + potionAtkEffect; }
 int PC::getDef() const { return Def + potionDefEffect; }
 bool PC::getWithBarrierSuit() const { return withBarrierSuit; }

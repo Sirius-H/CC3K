@@ -281,16 +281,6 @@ int main(int argc, char* argv[]) {
 					std::cout << "Invalid input, please input the correct character" << std::endl;
 				}
 			}
-			// Reassign/regenerate seed
-			/*
-			if (argc == 3) {
-				string s = argv[2];
-				istringstream iss{s};
-				iss >> seed;
-			} else { // if not specified, use random seed
-				seed = std::chrono::system_clock::now().time_since_epoch().count();
-			}
-			*/
 			if (!foundPC) {
 				g = std::make_shared<Grid> (maps[currFloor - 1], seed, pc, currFloor == barrierFloor, &flags);
 			} else {
@@ -320,6 +310,7 @@ int main(int argc, char* argv[]) {
 			cin >> f;
 			flags.emplace_back(f);
 			std::cout << "New flag: \"" << f << "\" has been deployed." << std::endl;
+			g->printState(currFloor);
 			continue;
 		}
 
@@ -337,8 +328,9 @@ int main(int argc, char* argv[]) {
 			}
 			if (!found) {
 				std::cout << "No flag called \"" << f << "\" has been deployed, please check your spelling." << std::endl;
-				continue;
 			}
+			g->printState(currFloor);
+			continue;
 		}
 		
 		

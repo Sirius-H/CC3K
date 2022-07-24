@@ -26,6 +26,7 @@ public:
     std::string getType() const override;
     int state() override;
     int getHP() const override;
+    void setHP(int val);
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;

@@ -11,7 +11,7 @@ Merchant::Merchant(Coordinate cdn): NPC{cdn} {
     Def = 5;
     std::vector<int> randPotions;
     for (int i = 0; i < 6; i++) {
-        randPotions.emplace_back(i + 1);
+        randPotions.emplace_back(i);
     }
     std::shuffle(randPotions.begin(), randPotions.end(), std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
     for (int i = 0; i < 3; i++) {
