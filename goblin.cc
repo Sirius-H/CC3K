@@ -9,3 +9,4 @@ Goblin::Goblin(Coordinate cdn) : NPC{cdn} {
 std::string Goblin::getName() const {
     return "Goblin";
 }
+
