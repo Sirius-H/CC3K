@@ -298,8 +298,7 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
             break;
         }
         else if (s == "MOREHP") {
-            PC* p = dynamic_cast<PC*>(theGrid[x1][y1].get());
-            p->setHP(999);
+            PC::HP = 999;
         }
     }
 
@@ -856,9 +855,8 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, std::
                         std::cout << "Elf PC created successfully" << std::endl;
                     }
                 }
-                PC* p = dynamic_cast<PC*>(theGrid[i][j].get());
                 if (morehp) {
-                    p->setHP(999);
+                    PC::HP = 999;
                 }
                 PCLocation = currCdn;
                 setState(std::pair<Coordinate, char>{currCdn, '@'});
@@ -1117,8 +1115,7 @@ void Grid::updateGrid() {
             td->notify(*this);
         }
         else if (s == "MOREHP") {
-            PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
-            p->setHP(999);
+            PC::HP = 999;
         }
     }
     PC* p = dynamic_cast<PC*>(theGrid[PCLocation.x][PCLocation.y].get());
@@ -1341,7 +1338,7 @@ void Grid::printState(int floorNum) const {
     std::cout << CYAN << "Race: " << race << RESET << "                                                            Floor " << floorNum << std::endl;
     std::cout << YELLOW << "Coin: " << std::setprecision(3) << PC::coin << std::endl;
     std::cout << "Total Score: " << std::setprecision(3) << PC::totalCoin << RESET << std::endl; 
-    std::cout << GREEN << "HP: " << p->getHP() << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << RESET << std::endl;
+    std::cout << GREEN << "HP: " << PC::HP << "   " << "Attack: " << p->getAtk() << "   " << "Defence: " << p->getDef() << RESET << std::endl;
     std::cout << CYAN << "Barrier Suit Status:    ";
     if (p->getWithBarrierSuit()) {
         std::cout << GREEN << "<ACQUIRED>" << RESET;
@@ -1417,7 +1414,7 @@ void Grid::buyPotion(std::string dir) {
                     int potionBought = dynamic_cast<Merchant*>(theGrid[l.x][l.y].get())->potions[c - '1'];
                     dynamic_cast<PC*>(theGrid[x][y].get())->applyEffect(potionBought);
                     std::cout << "Potion bought successfully." << std::endl;
-                    if (theGrid[PCLocation.x][PCLocation.y]->getHP() <= 0) {
+                    if (PC::HP <= 0) {
                         break;
                     }
                 } else {
@@ -1436,9 +1433,6 @@ void Grid::buyPotion(std::string dir) {
 
 
 
-int Grid::getHP() {
-    return theGrid[PCLocation.x][PCLocation.y]->getHP();
-}
 
 Coordinate& Grid::getPCLocation() {
     return PCLocation;

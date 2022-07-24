@@ -5,7 +5,6 @@
 
 class PC: public Cell {
 protected:
-    int HP;
     int maxHP;
     int Atk;
     int Def;
@@ -15,6 +14,7 @@ protected:
     int potionDefEffect = 0;
     int moved = 0;
 public:
+    static int HP;
     static int onTile; // -1 if on floor; 1 if on #; 2 if on +
     static double coin;
     static double totalCoin;
@@ -25,8 +25,6 @@ public:
     virtual void applyEffect(int effect);
     std::string getType() const override;
     int state() override;
-    int getHP() const override;
-    void setHP(int val);
     int getAtk() const;
     int getDef() const;
     bool getWithBarrierSuit() const;

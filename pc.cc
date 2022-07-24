@@ -1,6 +1,7 @@
 #include <math.h>
 #include "pc.h"
 
+int PC::HP = 0;
 int PC::onTile = -1;
 double PC::coin = 0;
 double PC::totalCoin = 0;
@@ -100,8 +101,6 @@ std::string PC::getType() const { return "PC"; }
 
 int PC::state() { return moved; }
 
-int PC::getHP() const { return HP; }
-void PC::setHP(int val) { HP = val; }
 int PC::getAtk() const { return Atk + potionAtkEffect; }
 int PC::getDef() const { return Def + potionDefEffect; }
 bool PC::getWithBarrierSuit() const { return withBarrierSuit; }

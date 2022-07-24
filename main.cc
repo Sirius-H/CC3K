@@ -10,6 +10,7 @@
 #include "grid.h"
 #include "termcodes.h"
 #include "pc.h"
+#include "merchant.h"
 #include "coordinate.h"
 using namespace std;
 
@@ -215,6 +216,7 @@ int main(int argc, char* argv[]) {
 					currFloor += 1;
 					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
+					Merchant::resetHatred();
 					g = std::make_shared<Grid> (maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags);
 					
 					g->printState(currFloor);
@@ -348,7 +350,7 @@ int main(int argc, char* argv[]) {
 		}
 		g->actionLog.clear();
 
-		if (g->getHP() == 0) {
+		if (PC::HP == 0) {
 			std::cout << CYAN << "##### " << left << setw(22) << setfill(' ') << "GAME OVER! Defeated!" << right << setw(5) << "#####" << std::endl;
 			std::cout << "##### TOTAL SCORE: " << left << setw(9) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
 			break;
