@@ -82,7 +82,7 @@ std::string codeTranslator(int code) {
     } else if (code == 3) {
         return "Poison Health";
     } else if (code == 4) {
-        return "Wound Attach";
+        return "Wound Attack";
     } else if (code == 5) {
         return "Wound Defence";
     } else if (code == 6) {
@@ -1122,7 +1122,6 @@ void Grid::updateGrid() {
     if (p->getWithCompass()) {
         setState(std::pair<Coordinate, char>{StairLocation, '\\'});
         td->notify(*this);
-        actionLog.emplace_back("Stair is now revealed.");
     }
     NPC::currInitState = 1 - NPC::currInitState;
 }
