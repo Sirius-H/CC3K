@@ -26,38 +26,6 @@ void printIntroMsg() {
 }
 
 
-void printMaps(vector<vector<string>>& maps) {
-	for (size_t i = 0; i < maps.size(); i++) {
-		std::cout << GREEN << "Floor: " << i + 1 << RESET << std::endl;
-		std::cout << "Size: " << maps[i].size() << std::endl;
-		for (size_t j = 0; j < maps[i].size(); j++) {
-			std::cout << maps[i][j] << std::endl;
-		}
-	}
-
-}
-
-void printMap(vector<string>& m) {
-	std::cout << "Size: " << m.size() << std::endl;
-	for (size_t i = 0; i < m.size(); i++) {
-		std::cout << GREEN << m[i] << RESET << std::endl;
-	}
-
-}
-
-void printInfoList(vector<vector<Info>> lst) {
-	std::cout << "Level num: " << lst.size() << std::endl;
-	for (size_t i = 0; i < lst.size(); i++) {
-		std::cout << "Level: " << i << std::endl;
-		std::cout << "Contents: " << lst[i].size() << std::endl;
-		for (size_t j = 0; j < lst[i].size(); j++) {
-			Info curr = lst[i][j];
-			std::cout << "Coordinate: " << curr.cdn << " Item: " << curr.item << " effect: " << curr.effectCode << std::endl;
-		}
-	}
-}
-
-
 
 
 
@@ -135,9 +103,6 @@ int main(int argc, char* argv[]) {
 
 
 	// Step 2: Call the corresponding constructor to initialize the game Grid
-
-
-	// CASE 1: If no floor file argument, then play the random-generated game
 	// Print out welcome message
 	std::cout << "WELCOME TO THE GAME OF CHAMBERCRAWLER3000+!" << std::endl;
 	printIntroMsg();
@@ -176,12 +141,6 @@ int main(int argc, char* argv[]) {
 		n.clear();
 	}
 
-	// Debugger
-	//std::cout << "Barrier Suit floor: " << barrierFloor << std::endl;
-	//std::cout << "PCFloorIndex: " << PCFloorIndex << std::endl;
-	//std::cout << "Seed: " << seed << std::endl;
-	//std::cout << "PC: " << pc << std::endl;
-
 	// Create new Grid object (game)
 	std::shared_ptr<Grid> g;
 
@@ -207,14 +166,11 @@ int main(int argc, char* argv[]) {
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
 				if (g->moveTo(destination)) {
 					if (currFloor == 5) {
-						// Debugger
-						// cout << YELLOW << "You Win! Your Score is: " << PC::totalCoin << endl;
 						g->actionLog.emplace_back("You Win!");
 						break;
 					}
 
 					currFloor += 1;
-					// Debugger
 					std::cout << GREEN << "You found the stairs! ENTERING LEVEL " << currFloor << " >>>" << RESET << std::endl;
 					Merchant::resetHatred();
 					g = std::make_shared<Grid> (maps[currFloor - 1], ++seed, pc, currFloor == barrierFloor, &flags);
@@ -231,10 +187,6 @@ int main(int argc, char* argv[]) {
 				cin >> direction;
 				if (cin.fail()) throw runtime_error("Incorrect direction format!");
 				Coordinate destination = convertCdn(g->getPCLocation(), direction);
-				// Debugger
-				std::cout << "Current PC Location: " << g->getPCLocation() << std::endl;
-				std::cout << "Accessing cdn: " << destination << std::endl;
-
 				g->usePotion(destination);
 			} catch (runtime_error& errorMsg) {
 				cout << errorMsg.what() << endl;
@@ -355,9 +307,7 @@ int main(int argc, char* argv[]) {
 			std::cout << "##### TOTAL SCORE: " << left << setw(9) << setfill(' ')  << PC::totalCoin << right << setw(5) << "#####" << RESET << std::endl;
 			break;
 		}
-
 	}
-
 	return 0;
 
 }

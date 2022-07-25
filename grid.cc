@@ -56,7 +56,6 @@ Coordinate convertCdn(const Coordinate& oldCdn, std::string direction) {
      } else if (direction == "sw") {
         return Coordinate{oldCdn.x + 1, oldCdn.y - 1};
      } else {
-		// Debugger
 		throw std::runtime_error("Wrong direction!");
         return oldCdn;
      }
@@ -201,8 +200,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                 ptr1 = std::make_shared<Passage> (currCdn, 2);
                 ptr2 = std::make_shared<Passage> (currCdn, 2);
             } else {
-                // Debugger
-                //std::cout << "this line should not be printed" << std::endl;
             }
             tempRow1.emplace_back(ptr1);
             tempRow2.emplace_back(ptr2);
@@ -212,12 +209,10 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         tempGrid.emplace_back(tempRow2);
     }
     td = std::make_shared<TextDisplay> (theGrid);
-    // Debugger
-    //std::cout << *td;
 
 
-    // Split chambers
-    // 默认grid不为空
+
+    // Split chambers (Grid should not be empty)
     h = tempGrid.size();
     w = tempGrid[0].size();
     int chamberIndex = 0;
@@ -363,7 +358,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
         potionChamber.clear();
     }
     // Debugger
-
     for (auto s : *flags) {
         if (s == "SHOWPOTION") {
             std::cout << *td;
@@ -427,9 +421,6 @@ Grid::Grid(std::vector<std::string>& theFloor, unsigned seed, char PCName, bool 
                             }
                         }
                     }
-                    // Debugger
-                    //std::cout << "Treasure neighbour list: " << std::endl;
-                    //print(treasureNeighbours);
 
 					if ((int)(treasureNeighbours.size()) == 0) {
 						// Debugger
@@ -1146,9 +1137,6 @@ bool Grid::canMoveTo(Coordinate cdn) { // for PC
 }
 
 bool Grid::moveTo(Coordinate newCdn) { // for PC
-    // Debugger
-    //std::cout << "PC Location: " << PCLocation << std::endl;
-    //std::cout << "Target Cdn:" << newCdn << std::endl;
     std::string msg = "";
 
     if (theGrid[newCdn.x][newCdn.y]->getName() == "Stair") {
@@ -1172,8 +1160,6 @@ bool Grid::moveTo(Coordinate newCdn) { // for PC
         if (code == 11) { // If PC moves onto a Compass, then the Stair is revealed
             setState(std::pair<Coordinate, char>{StairLocation, '\\'});
             td->notify(*this);
-            // Debugger
-            //std::cout << GREEN << "You had the compass, stair revealed >>>" << RESET << std::endl;
             actionLog.emplace_back("PC obtains the Compass. Stair is now revealed.");
         }
     }
@@ -1308,8 +1294,6 @@ void Grid::usePotion(Coordinate cdn) {
                     theGrid[cdn.x][cdn.y] = std::make_shared<Floor> (cdn);
                     setState(std::pair<Coordinate,char>{cdn, '.'});
                     td->notify(*this);
-                    // Debugger
-                    //std::cout << RED << "Used potion at " << cdn  << RESET << std::endl;
                     actionLog.emplace_back("PC uses Potion: " + codeTranslator(code) + ".");
 
                     try {
