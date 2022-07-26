@@ -1061,7 +1061,9 @@ void Grid::updateGrid() {
                         actionLog.emplace_back(theGrid[i][j]->getName() + " misses its attack to PC.");
                     }
                     n->setMoved();
-                } 
+                } else if (theGrid[i][j]->getName() == "Troll") {
+                    static_cast<Troll*> (theGrid[i][j].get())->recoverHP();
+                }
                                 
                 
                 else { // else move one block

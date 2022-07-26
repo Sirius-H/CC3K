@@ -6,6 +6,7 @@ class Troll : public NPC {
 public: 
     Troll(Coordinate cdn);
     std::string getName() const override;
+    void recoverHP();
 };
 
 #endif

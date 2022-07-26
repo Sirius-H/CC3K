@@ -9,3 +9,11 @@ Troll::Troll(Coordinate cdn) : NPC{cdn} {
 std::string Troll::getName() const {
     return "Troll";
 }
+
+void Troll::recoverHP() {
+    if (HP + 10 <= 120) {
+        HP += 10;
+    } else {
+        HP = 120;
+    }
+}
